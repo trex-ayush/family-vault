@@ -88,7 +88,7 @@ The screenshots use a made-up sample family; every name, number and card in them
 | **Members** | Invite family members by email (or copy the invite link when email is off). Each member can view only, or view and add; an admin can also make a member a **family admin** who can invite and manage people. Removing a member keeps everything they added. |
 | **Bin** | Deleted folders, documents, files and passwords wait in the Bin and can be restored. |
 | **Activity** | A log of who did what and when, with filters for member, action and dates. Member and action filters support **Include / Exclude** (tick several, or "all but these"). |
-| **Account** | Profile and avatar colour, change password, language, light / dark theme, "log out everywhere" (takes effect instantly on all devices), and automatic sign-out after 60 minutes without use. |
+| **Account** | Name (the picture is the Google photo, or the first letter on an automatic colour), change password, language, light / dark theme, "log out everywhere" (takes effect instantly on all devices), and automatic sign-out after 60 minutes without use. |
 | **Tools** | **Resize & compress**: shrink a photo or scan to a size limit for online forms (for example "under 100 KB"). |
 | **Help on hover** | Short, simple tooltips (in English and Hindi) on buttons, tabs, cards and menu items. |
 

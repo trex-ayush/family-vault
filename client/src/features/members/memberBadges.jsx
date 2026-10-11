@@ -27,4 +27,4 @@ export function roleBadge(member, t) {
 
 /** The user shape `Avatar` wants, from a Membership. */
 export const avatarUser = (m) =>
-  m?.user ? { name: m.name, avatarColor: m.user.avatarColor, avatarUrl: m.user.avatarUrl } : { name: m?.name };
+  m?.user ? { name: m.name, avatarUrl: m.user.avatarUrl } : { name: m?.name };

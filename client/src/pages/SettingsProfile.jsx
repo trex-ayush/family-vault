@@ -2,33 +2,29 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { SectionCard } from '@/components/ui/Card.jsx';
-import { FIELD_GAP, FIELD_LABEL } from '@/components/ui/tokens.js';
+import { FIELD_GAP, FIELD_HINT } from '@/components/ui/tokens.js';
 import Input from '@/components/ui/Input.jsx';
 import Button from '@/components/ui/Button.jsx';
 import Avatar from '@/components/ui/Avatar.jsx';
-import Tooltip from '@/components/ui/Tooltip.jsx';
 import { useAuth } from '@/context/AuthContext.jsx';
 import { authApi } from '@/services/authApi.js';
 
-const AVATAR_COLORS = [
-  '#FF5A5F', '#FF9F1C', '#F4A261', '#2EC4B6', '#4CC9F0',
-  '#4361EE', '#7209B7', '#F72585', '#38B000', '#8D99AE',
-];
-
-/** Settings > My account > Profile section — `PATCH /auth/me` (name, avatarColor). */
+/**
+ * Settings > My account > Profile section — `PATCH /auth/me` (name). The picture shown is exactly
+ * what others see: the Google photo when the account has one, otherwise the first letter of the
+ * name on an automatic colour. There is nothing to pick.
+ */
 export default function SettingsProfile() {
   const { t } = useTranslation('settings');
   const { user, updateUser } = useAuth();
   const [name, setName] = useState(user?.name || '');
-  const [avatarColor, setAvatarColor] = useState(user?.avatarColor || AVATAR_COLORS[0]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setName(user?.name || '');
-    setAvatarColor(user?.avatarColor || AVATAR_COLORS[0]);
   }, [user]);
 
-  const dirty = name.trim() !== (user?.name || '') || avatarColor !== (user?.avatarColor || AVATAR_COLORS[0]);
+  const dirty = name.trim() !== (user?.name || '');
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -37,7 +33,7 @@ export default function SettingsProfile() {
     }
     setSaving(true);
     try {
-      const updated = await authApi.updateMe({ name: name.trim(), avatarColor });
+      const updated = await authApi.updateMe({ name: name.trim() });
       updateUser(updated);
       toast.success(t('profile.updated', 'Profile updated'));
     } catch (err) {
@@ -50,28 +46,15 @@ export default function SettingsProfile() {
   return (
     <SectionCard id="settings-profile" title={t('tabs.profile', 'Profile')} bodyClassName={FIELD_GAP}>
       <div className="flex items-center gap-4">
-        <Avatar user={{ name, avatarColor }} size="xl" />
+        {/* The live name, so the letter changes as they type (a photo stays a photo). */}
+        <Avatar user={{ name, avatarUrl: user?.avatarUrl }} size="xl" />
         <div className="flex-1">
           <Input label={t('profile.nameLabel', 'Name')} value={name} onChange={(e) => setName(e.target.value)} />
-        </div>
-      </div>
-
-      <div>
-        <p className={FIELD_LABEL}>{t('profile.avatarColorLabel', 'Avatar color')}</p>
-        <div className="flex flex-wrap gap-2">
-          {AVATAR_COLORS.map((c) => (
-            <Tooltip key={c} content={t('tip.pickColor', 'Use this colour for you')}>
-            <button
-              type="button"
-              aria-label={t('profile.chooseColor', 'Choose {{color}}', { color: c })}
-              onClick={() => setAvatarColor(c)}
-              className={`w-11 h-11 rounded-full border-2 transition-transform ${
-                avatarColor === c ? 'border-neutral-900 dark:border-white scale-110' : 'border-transparent'
-              }`}
-              style={{ backgroundColor: c }}
-            />
-            </Tooltip>
-          ))}
+          <p className={FIELD_HINT}>
+            {user?.avatarUrl
+              ? t('profile.pictureGoogle', 'Your picture comes from your Google account.')
+              : t('profile.pictureLetter', 'Your picture is the first letter of your name.')}
+          </p>
         </div>
       </div>
 

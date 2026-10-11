@@ -9,12 +9,12 @@
   },
   "profile": {
     "nameLabel": "Name",
-    "avatarColorLabel": "Avatar color",
-    "chooseColor": "Choose {{color}}",
     "saveChanges": "Save changes",
     "nameRequired": "Name is required",
     "updated": "Profile updated",
-    "updateFailed": "Could not update your profile."
+    "updateFailed": "Could not update your profile.",
+    "pictureGoogle": "Your picture comes from your Google account.",
+    "pictureLetter": "Your picture is the first letter of your name."
   },
   "password": {
     "currentPasswordLabel": "Current password",
@@ -64,7 +64,6 @@
   "tip": {
     "tabAccount": "Your name, colour and password",
     "tabFamily": "Family name, links and emails",
-    "pickColor": "Use this colour for you",
     "emailOn": "Stop these emails",
     "emailOff": "Get an email when this happens",
     "testEmail": "Send one email to check it works",

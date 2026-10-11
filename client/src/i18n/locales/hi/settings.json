@@ -9,12 +9,12 @@
   },
   "profile": {
     "nameLabel": "नाम",
-    "avatarColorLabel": "अवतार का रंग",
-    "chooseColor": "{{color}} चुनें",
     "saveChanges": "बदलाव सेव करें",
     "nameRequired": "नाम ज़रूरी है",
     "updated": "प्रोफ़ाइल अपडेट हो गई",
-    "updateFailed": "आपकी प्रोफ़ाइल अपडेट नहीं हो सकी।"
+    "updateFailed": "आपकी प्रोफ़ाइल अपडेट नहीं हो सकी।",
+    "pictureGoogle": "आपकी फ़ोटो आपके Google खाते से आती है।",
+    "pictureLetter": "आपकी फ़ोटो आपके नाम का पहला अक्षर है।"
   },
   "password": {
     "currentPasswordLabel": "मौजूदा पासवर्ड",
@@ -64,7 +64,6 @@
   "tip": {
     "tabAccount": "आपका नाम, रंग और पासवर्ड",
     "tabFamily": "परिवार का नाम, लिंक और ईमेल",
-    "pickColor": "अपने लिए यह रंग चुनें",
     "emailOn": "ये ईमेल बंद करें",
     "emailOff": "ऐसा होने पर ईमेल पाएँ",
     "testEmail": "जाँचने के लिए एक ईमेल भेजें",

@@ -1,20 +1,18 @@
 /**
- * Avatar — circle with a photo or initials fallback. Family Vault members
- * carry `avatarColor` (a hex from signup/member creation, docs/API.md)
- * instead of a photo in v1, so the initials background uses that color when
- * present, falling back to the neutral gradient from the source primitive.
+ * Avatar — a circle with the person's photo, or their first letter.
+ *  - Photo: `avatarUrl`, set from a linked Google account's profile picture (docs/API.md).
+ *  - Otherwise: the first letter of their name on a colour picked automatically from the name,
+ *    so the same person always gets the same colour on every screen. There is no colour choice
+ *    (the old `avatarColor` field is ignored).
  *
- * Ported from apps/template/src/components/ui/Avatar.jsx. Change: the
- * initials tile reads `user.avatarColor` (our API's field) instead of always
- * using a fixed gradient.
+ * Ported from apps/template/src/components/ui/Avatar.jsx.
  *
  * Props:
- *  - user       { name, avatarUrl?, avatar?, avatarColor? }
+ *  - user       { name, avatarUrl?, avatar? }
  *  - size?      'xs' | 'sm' | 'md' (default) | 'lg' | 'xl'
  *  - className? appended last (Rule 8)
  *
- * `avatarUrl` is the API's own field (set from a linked Google account's profile picture,
- * docs/API.md). `avatar` is kept as a fallback in case any caller's data uses that name instead.
+ * `avatar` is kept as a fallback in case any caller's data uses that name instead of `avatarUrl`.
  *
  * @example
  * <Avatar user={membership} size="md" />
@@ -26,6 +24,16 @@ const SIZES = {
   lg: 'w-10 h-10 text-sm',
   xl: 'w-24 h-24 text-3xl',
 };
+
+// Dark enough for white letters to read on each.
+const LETTER_COLORS = ['#E04F54', '#D97706', '#0F9488', '#0284C7', '#4361EE', '#7209B7', '#C2185B', '#2F855A', '#64748B'];
+
+/** The same name always gives the same colour. */
+export function letterColor(name) {
+  let hash = 0;
+  for (const ch of String(name || '').trim().toLowerCase()) hash = (hash * 31 + ch.codePointAt(0)) >>> 0;
+  return LETTER_COLORS[hash % LETTER_COLORS.length];
+}
 
 const Avatar = ({ user, size = 'md', className = '' }) => {
   const sizeCls = SIZES[size] || SIZES.md;
@@ -43,12 +51,10 @@ const Avatar = ({ user, size = 'md', className = '' }) => {
     );
   }
 
-  const style = user?.avatarColor ? { backgroundColor: user.avatarColor } : undefined;
-
   return (
     <div
-      style={style}
-      className={`${sizeCls} rounded-full ${style ? '' : 'bg-gradient-to-br from-neutral-600 to-neutral-800'} flex items-center justify-center text-white font-medium flex-shrink-0 ${className}`}
+      style={{ backgroundColor: letterColor(name) }}
+      className={`${sizeCls} rounded-full flex items-center justify-center text-white font-medium flex-shrink-0 ${className}`}
     >
       {initial}
     </div>
