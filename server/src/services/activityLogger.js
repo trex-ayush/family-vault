@@ -27,6 +27,7 @@ export async function logActivity(req, { action, targetType = null, targetId = n
   const doc = await Activity.create({
     familyId: resolvedFamilyId,
     actorMembershipId: auth?.membershipId || null,
+    actorUserId: auth?.userId || null,
     actorName: actorName || auth?.membership?.name || 'Visitor',
     action,
     targetType,

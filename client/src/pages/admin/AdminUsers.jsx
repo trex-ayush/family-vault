@@ -180,7 +180,7 @@ function UserDrawer({ userId, onClose }) {
         ) : user ? (
           <div>
             <div className="flex items-center gap-3">
-              <Avatar user={{ name }} size="lg" />
+              <Avatar user={{ name, avatarUrl: user.avatarUrl }} size="lg" />
               <div className="min-w-0">
                 <p className="truncate text-base font-semibold text-neutral-900 dark:text-neutral-100">{user.name || user.email}</p>
                 <p className="truncate text-sm text-neutral-500 dark:text-neutral-400">{user.email}</p>
@@ -272,7 +272,7 @@ export default function AdminUsers() {
 
   const nameCell = (u) => (
     <div className="flex min-w-0 items-center gap-3">
-      <Avatar user={{ name: u.name || u.email }} size="sm" />
+      <Avatar user={{ name: u.name || u.email, avatarUrl: u.avatarUrl }} size="sm" />
       <div className="min-w-0">
         <p className="flex flex-wrap items-center gap-1.5">
           <span className="truncate font-medium">{u.name || u.email}</span>
@@ -334,7 +334,7 @@ export default function AdminUsers() {
                 as="li"
                 onClick={() => setOpenId(u.id)}
                 tip={t('tip.openUser', 'See their details')}
-                icon={<Avatar user={{ name: u.name || u.email }} size="md" />}
+                icon={<Avatar user={{ name: u.name || u.email, avatarUrl: u.avatarUrl }} size="md" />}
                 title={
                   <span className="flex min-w-0 flex-wrap items-center gap-1.5">
                     <span className="truncate">{u.name || u.email}</span>

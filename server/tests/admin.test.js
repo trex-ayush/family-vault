@@ -149,7 +149,7 @@ describe('admins', () => {
     expect(dup.body.code).toBe('ALREADY_ADMIN');
 
     const list = await get(sup, '/admins').expect(200);
-    expect(list.body.superAdmin).toEqual({ email: SUPER, name: sup.user.name });
+    expect(list.body.superAdmin).toEqual({ email: SUPER, name: sup.user.name, avatarUrl: null });
     expect(list.body.admins.map((a) => a.email)).toEqual([other.user.email]);
 
     // Any admin can add/remove admins.

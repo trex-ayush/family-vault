@@ -169,7 +169,7 @@ export function AdminActivityList({ items, showFamily = true, emptyText }) {
         const where = [a.targetTitle, showFamily ? a.family?.name : null].filter(Boolean).join(' · ');
         return (
           <li key={a.id} className="flex items-start gap-3 py-3">
-            <Avatar user={{ name: who }} size="sm" />
+            <Avatar user={{ name: who, avatarUrl: a.actor?.avatarUrl }} size="sm" />
             <div className="min-w-0 flex-1">
               <p className="text-sm text-neutral-800 dark:text-neutral-200">
                 <span className="font-medium">{who}</span>

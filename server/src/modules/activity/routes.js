@@ -5,7 +5,7 @@ import { requireAuth, requireFamily, requireWrite, scopeToFamily } from '../../m
 import { validate } from '../../middleware/validate.js';
 import { ApiError } from '../../middleware/errorHandler.js';
 import { Activity } from '../../models/Activity.js';
-import { serializeActivity } from './serialize.js';
+import { actorAvatarUrls, serializeActivity } from './serialize.js';
 import { inNin, listOf } from '../../utils/listQuery.js';
 
 const router = express.Router();
@@ -76,8 +76,9 @@ router.get('/', validate({ query: querySchema }), async (req, res, next) => {
     const hasMore = rows.length > limit;
     const page = hasMore ? rows.slice(0, limit) : rows;
 
+    const avatars = await actorAvatarUrls(page);
     res.json({
-      items: page.map(serializeActivity),
+      items: page.map((a) => ({ ...serializeActivity(a), actorAvatarUrl: avatars.get(String(a._id)) || null })),
       nextCursor: hasMore ? encodeCursor(page[page.length - 1]) : null,
     });
   } catch (err) {

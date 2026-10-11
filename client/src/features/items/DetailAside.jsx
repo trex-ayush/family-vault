@@ -64,7 +64,7 @@ function RecentActivity({ activity }) {
         <ul className="divide-y divide-neutral-100 dark:divide-neutral-700">
           {rows.map((a) => (
             <li key={a.id} className="flex items-start gap-2.5 py-2">
-              <Avatar user={{ name: a.actorName }} size="sm" className="mt-0.5" />
+              <Avatar user={{ name: a.actorName, avatarUrl: a.actorAvatarUrl }} size="sm" className="mt-0.5" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm text-neutral-900 dark:text-neutral-100">
                   <span className="font-medium">{a.actorName || t('activity:row.someone', 'Someone')}</span>{' '}

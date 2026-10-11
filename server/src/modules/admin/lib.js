@@ -73,9 +73,12 @@ export async function buildActivityRows(rows) {
   const userIds = [
     ...[...memberships.values()].map((m) => m.userId),
     ...rows.map((r) => r.meta?.actorUserId),
+    // No member on the row (a sign-in, creating a family): the account that did it.
+    ...rows.map((r) => r.actorUserId),
+    ...rows.filter((r) => !r.actorMembershipId && r.targetType === 'user').map((r) => r.targetId),
   ];
   const [users, families] = await Promise.all([
-    mapById(User, userIds, 'name email'),
+    mapById(User, userIds, 'name email avatarUrl'),
     mapById(Family, rows.map((r) => r.familyId), 'name'),
   ]);
 
@@ -84,12 +87,14 @@ export async function buildActivityRows(rows) {
     const adminUser = r.meta?.actorUserId ? users.get(String(r.meta.actorUserId)) : null;
     const m = r.actorMembershipId ? memberships.get(String(r.actorMembershipId)) : null;
     if (adminUser) {
-      actor = { id: str(adminUser._id), name: adminUser.name, email: adminUser.email };
+      actor = { id: str(adminUser._id), name: adminUser.name, email: adminUser.email, avatarUrl: adminUser.avatarUrl || null };
     } else if (m) {
       const u = m.userId ? users.get(String(m.userId)) : null;
-      actor = { id: u ? str(u._id) : null, name: m.name, email: u?.email ?? null };
+      actor = { id: u ? str(u._id) : null, name: m.name, email: u?.email ?? null, avatarUrl: u?.avatarUrl || null };
     } else if (r.actorName && r.actorName !== 'Visitor') {
-      actor = { id: null, name: r.actorName, email: null };
+      const uid = r.actorUserId || (r.targetType === 'user' ? r.targetId : null);
+      const u = uid ? users.get(String(uid)) : null;
+      actor = { id: u ? str(u._id) : null, name: r.actorName, email: u?.email ?? null, avatarUrl: u?.avatarUrl || null };
     }
     const fam = r.familyId ? families.get(String(r.familyId)) : null;
     return {
@@ -121,14 +126,14 @@ export async function recentActivity(filter, limit) {
   const rows = await Activity.find(filter)
     .sort({ createdAt: -1, _id: -1 })
     .limit(limit)
-    .select('familyId actorMembershipId actorName action targetType meta createdAt')
+    .select('familyId actorMembershipId actorUserId actorName action targetType targetId meta createdAt')
     .lean();
   return buildActivityRows(rows);
 }
 
 /* ---------------------------------------------------------------------- users */
 
-export const USER_FIELDS = 'name email createdAt lastLoginAt disabled authProviders';
+export const USER_FIELDS = 'name email avatarUrl createdAt lastLoginAt disabled authProviders';
 
 /** User docs (lean, USER_FIELDS) -> UserRow[]. */
 export async function buildUserRows(users) {
@@ -147,6 +152,7 @@ export async function buildUserRows(users) {
     id: str(u._id),
     name: u.name,
     email: u.email,
+    avatarUrl: u.avatarUrl || null,
     createdAt: u.createdAt ?? null,
     lastLoginAt: u.lastLoginAt ?? null,
     disabled: Boolean(u.disabled),

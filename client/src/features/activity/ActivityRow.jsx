@@ -27,7 +27,7 @@ export default function ActivityRow({ activity }) {
   const meta = describeActivityMeta(activity, t);
   return (
     <ListRow
-      icon={<Avatar user={{ name: activity.actorName }} size="md" />}
+      icon={<Avatar user={{ name: activity.actorName, avatarUrl: activity.actorAvatarUrl }} size="md" />}
       wrapTitle
       title={
         <>

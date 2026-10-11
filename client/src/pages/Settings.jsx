@@ -51,13 +51,17 @@ export default function Settings() {
   const { data: family } = useQuery({ queryKey: ['family'], queryFn: () => familyApi.get(), enabled: isAdmin });
 
   // Two sections side by side from lg (Profile | Password, Family | Alerts); stacked on phones.
+  // Leave / Delete: on PC under the short card on the left, so they're seen without scrolling past
+  // the long card on the right; on phones (one column) last on the page, where a danger action goes.
+  const leave = membership && !isOwner;
   const account = (
-    <div className={SECTION_GAP}>
-      <div className={TWO_COLUMNS}>
+    <div className={TWO_COLUMNS}>
+      <div className={SECTION_GAP}>
         <SettingsProfile />
-        <SettingsPassword />
+        {leave && <div className="hidden lg:block"><LeaveFamilySection /></div>}
       </div>
-      {membership && !isOwner && <LeaveFamilySection />}
+      <SettingsPassword />
+      {leave && <div className="lg:hidden"><LeaveFamilySection /></div>}
     </div>
   );
 
@@ -76,12 +80,13 @@ export default function Settings() {
           </TabsList>
           <TabsContent value="account">{account}</TabsContent>
           <TabsContent value="family">
-            <div className={SECTION_GAP}>
-              <div className={TWO_COLUMNS}>
+            <div className={TWO_COLUMNS}>
+              <div className={SECTION_GAP}>
                 <SettingsFamily family={family} />
-                <SettingsNotifications family={family} />
+                {isOwner && <div className="hidden lg:block"><DeleteFamilySection /></div>}
               </div>
-              {isOwner && <DeleteFamilySection />}
+              <SettingsNotifications family={family} />
+              {isOwner && <div className="lg:hidden"><DeleteFamilySection /></div>}
             </div>
           </TabsContent>
         </Tabs>

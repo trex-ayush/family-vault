@@ -9,6 +9,9 @@ const activitySchema = new mongoose.Schema(
     familyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Family', default: null, index: true },
     // null = public visitor (a /public/shares/:token open, e.g.)
     actorMembershipId: { type: mongoose.Schema.Types.ObjectId, ref: 'Membership', default: null },
+    // The signed-in account, also when there's no membership yet (e.g. creating a family) — used
+    // only to show the person's photo in activity lists; never sent to the app.
+    actorUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     actorName: { type: String, default: 'Visitor' },
     action: { type: String, required: true, index: true },
     targetType: { type: String, default: null },

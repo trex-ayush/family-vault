@@ -86,7 +86,7 @@ router.get('/activity', validate({ query: activityQuery }), async (req, res, nex
     const rows = await Activity.find(and.length ? { $and: and } : {})
       .sort({ createdAt: -1, _id: -1 })
       .limit(limit + 1)
-      .select('familyId actorMembershipId actorName action targetType meta createdAt')
+      .select('familyId actorMembershipId actorUserId actorName action targetType targetId meta createdAt')
       .lean();
 
     const hasMore = rows.length > limit;

@@ -165,7 +165,7 @@ export default function AdminAdmins() {
           {superAdmin && (
             <ListRow
               as="li"
-              icon={<Avatar user={{ name: superAdmin.name || superAdmin.email }} size="md" />}
+              icon={<Avatar user={{ name: superAdmin.name || superAdmin.email, avatarUrl: superAdmin.avatarUrl }} size="md" />}
               title={nameLine(superAdmin, <Badge tone="purple">{t('role.super', 'Super admin')}</Badge>)}
               meta={superAdmin.name ? superAdmin.email : null}
               actions={
@@ -181,7 +181,7 @@ export default function AdminAdmins() {
             <ListRow
               key={a.id}
               as="li"
-              icon={<Avatar user={{ name: a.name || a.email }} size="md" />}
+              icon={<Avatar user={{ name: a.name || a.email, avatarUrl: a.avatarUrl }} size="md" />}
               title={nameLine(a, <Badge tone="blue">{t('role.admin', 'Admin')}</Badge>)}
               meta={[a.name ? a.email : null,
                 a.addedBy?.email

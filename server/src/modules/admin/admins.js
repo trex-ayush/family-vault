@@ -16,10 +16,11 @@ const router = express.Router();
 async function buildAdminRows(admins) {
   if (!admins.length) return [];
   const [users, adders] = await Promise.all([
-    User.find({ email: { $in: admins.map((a) => a.email) } }).select('name email').lean(),
+    User.find({ email: { $in: admins.map((a) => a.email) } }).select('name email avatarUrl').lean(),
     User.find({ _id: { $in: admins.map((a) => a.addedBy).filter(Boolean) } }).select('email').lean(),
   ]);
   const nameByEmail = new Map(users.map((u) => [u.email, u.name]));
+  const avatarByEmail = new Map(users.map((u) => [u.email, u.avatarUrl || null]));
   const adderById = new Map(adders.map((u) => [String(u._id), u.email]));
   return admins.map((a) => {
     const adderEmail = a.addedBy ? adderById.get(String(a.addedBy)) : null;
@@ -27,6 +28,7 @@ async function buildAdminRows(admins) {
       id: String(a._id),
       email: a.email,
       name: nameByEmail.get(a.email) ?? null,
+      avatarUrl: avatarByEmail.get(a.email) ?? null,
       addedBy: adderEmail ? { email: adderEmail } : null,
       addedAt: a.createdAt ?? null,
     };
@@ -37,11 +39,11 @@ router.get('/', async (req, res, next) => {
   try {
     const email = superAdminEmail() || null;
     const [superUser, admins] = await Promise.all([
-      email ? User.findOne({ email }).select('name').lean() : null,
+      email ? User.findOne({ email }).select('name avatarUrl').lean() : null,
       PlatformAdmin.find().sort({ createdAt: 1, _id: 1 }).select('email addedBy createdAt').lean(),
     ]);
     res.json({
-      superAdmin: { email, name: superUser?.name ?? null },
+      superAdmin: { email, name: superUser?.name ?? null, avatarUrl: superUser?.avatarUrl ?? null },
       admins: await buildAdminRows(admins),
     });
   } catch (err) {

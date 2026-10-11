@@ -192,7 +192,7 @@ function AdminActivityRow({ row }) {
 
   return (
     <ListRow
-      icon={<Avatar user={{ name }} size="md" />}
+      icon={<Avatar user={{ name, avatarUrl: row.actor?.avatarUrl }} size="md" />}
       wrapTitle
       title={
         <span>

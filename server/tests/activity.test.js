@@ -146,6 +146,17 @@ describe('activity module', () => {
     expect(new Set(allIds).size).toBe(5);
   });
 
+  it("includes the person's photo (their Google picture) on each entry", async () => {
+    const { family, membership, user, accessToken } = await createFamilyWithMember();
+    await User.updateOne({ _id: user._id }, { avatarUrl: 'https://example.com/photo.jpg' });
+    await seedActivity(family, membership, 1);
+
+    const res = await request(app).get('/api/activity').set('Authorization', `Bearer ${accessToken}`).set('X-Family-Id', family.id);
+    expect(res.body.items[0].actorAvatarUrl).toBe('https://example.com/photo.jpg');
+    // The account id used to find it is never sent.
+    expect(res.body.items[0]).not.toHaveProperty('actorUserId');
+  });
+
   it('filters by action', async () => {
     const { family, membership, accessToken } = await createFamilyWithMember();
     await seedActivity(family, membership, 2, { action: 'document.view' });

@@ -20,6 +20,7 @@ import { shouldLogView } from './viewThrottle.js';
 import { adjustFamilyStorageBytes } from './storageAccounting.js';
 import { sealText } from './secretText.js';
 import { FILE_LABEL_MAX } from './fileNames.js';
+import { actorAvatarUrls } from '../activity/serialize.js';
 import { getEffectiveFamilySettings } from '../../utils/effectiveSettings.js';
 import { buildBreadcrumbs } from '../folders/folderTree.js';
 import { resolveTargetFolder } from '../folders/sharedFolder.js';
@@ -572,11 +573,13 @@ router.get('/:id/activity', validate({ params: idParamSchema }), async (req, res
       .sort({ createdAt: -1 })
       .limit(200)
       .lean();
+    const avatars = await actorAvatarUrls(rows);
 
     res.json({
       items: rows.map((a) => ({
         id: a._id.toString(),
         actorName: a.actorName,
+        actorAvatarUrl: avatars.get(String(a._id)) || null,
         action: a.action,
         targetType: a.targetType,
         targetId: a.targetId ? a.targetId.toString() : null,

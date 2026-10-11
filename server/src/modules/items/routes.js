@@ -9,6 +9,7 @@ import { validate } from '../../middleware/validate.js';
 import { ApiError } from '../../middleware/errorHandler.js';
 import { logActivity } from '../../services/activityLogger.js';
 import { sealText } from '../documents/secretText.js';
+import { actorAvatarUrls } from '../activity/serialize.js';
 import { shouldLogView } from '../documents/viewThrottle.js';
 import { buildBreadcrumbs } from '../folders/folderTree.js';
 import { resolveTargetFolder } from '../folders/sharedFolder.js';
@@ -254,11 +255,13 @@ router.get('/:id/activity', validate({ params: idParamSchema }), async (req, res
       .sort({ createdAt: -1 })
       .limit(200)
       .lean();
+    const avatars = await actorAvatarUrls(rows);
 
     res.json({
       items: rows.map((a) => ({
         id: a._id.toString(),
         actorName: a.actorName,
+        actorAvatarUrl: avatars.get(String(a._id)) || null,
         action: a.action,
         targetType: a.targetType,
         targetId: a.targetId ? a.targetId.toString() : null,
