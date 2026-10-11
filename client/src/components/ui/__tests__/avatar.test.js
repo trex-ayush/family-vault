@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { letterColor } from '../Avatar.jsx';
+import { cartoonUrl, letterColor } from '../Avatar.jsx';
 
 describe('letterColor', () => {
   it('gives the same name the same colour every time, ignoring case and spaces', () => {
@@ -15,5 +15,19 @@ describe('letterColor', () => {
   it('works for Hindi names and an empty name', () => {
     expect(letterColor('पापा')).toMatch(/^#/);
     expect(letterColor('')).toMatch(/^#/);
+  });
+});
+
+describe('cartoonUrl', () => {
+  it('gives the same name the same face, ignoring case and spaces', () => {
+    expect(cartoonUrl('Ayush Singh')).toBe(cartoonUrl('  ayush singh '));
+    expect(cartoonUrl('Papa')).not.toBe(cartoonUrl('Mummy'));
+  });
+
+  it('never sends the name itself', () => {
+    const url = cartoonUrl('Hemlata Singh');
+    expect(url).toMatch(/^https:\/\/api\.dicebear\.com\//);
+    expect(url.toLowerCase()).not.toContain('hemlata');
+    expect(new URL(url).searchParams.get('seed')).toMatch(/^[0-9a-f]+$/);
   });
 });

@@ -53,7 +53,7 @@ export default function SettingsProfile() {
           <p className={FIELD_HINT}>
             {user?.avatarUrl
               ? t('profile.pictureGoogle', 'Your picture comes from your Google account.')
-              : t('profile.pictureLetter', 'Your picture is the first letter of your name.')}
+              : t('profile.pictureLetter', 'Your picture is a cartoon face picked from your name. Sign in with Google to use your own photo.')}
           </p>
         </div>
       </div>
