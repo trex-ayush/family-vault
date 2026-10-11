@@ -8,6 +8,7 @@ import CopyButton from '@/features/items/CopyButton.jsx';
 import TextLines from './TextLines.jsx';
 import PdfViewer from './PdfViewer.jsx';
 import Tooltip from '@/components/ui/Tooltip.jsx';
+import { downloadName } from './fileNames.js';
 
 function distance(touches) {
   const [a, b] = touches;
@@ -129,7 +130,7 @@ export default function FilePreview({ files, startIndex = 0, onClose, onEditText
           <Tooltip content={t('common:tip.download', 'Save a copy to your device')}>
             <button
               type="button"
-              onClick={() => filesApi.triggerDownload(file.downloadUrl, file.originalName)}
+              onClick={() => filesApi.triggerDownload(file.downloadUrl, downloadName(file))}
               className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-white/10"
               aria-label={t('common:actions.download', 'Download')}
             >
@@ -165,7 +166,7 @@ export default function FilePreview({ files, startIndex = 0, onClose, onEditText
             draggable={false}
           />
         ) : isPdf ? (
-          <PdfViewer key={file.id || file.url} url={filesApi.resolveUrl(file.url)} onDownload={() => filesApi.triggerDownload(file.downloadUrl, file.originalName)} />
+          <PdfViewer key={file.id || file.url} url={filesApi.resolveUrl(file.url)} onDownload={() => filesApi.triggerDownload(file.downloadUrl, downloadName(file))} />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-white/70">{t('filePreview.notAvailable', 'Preview not available for this file type.')}</div>
         )}

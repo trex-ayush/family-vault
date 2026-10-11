@@ -78,7 +78,8 @@
     "adminTestEmail": "टेस्ट ईमेल भेजा",
     "adminUserLogoutAll": "किसी को हर जगह से साइन आउट करना",
     "adminUserDisable": "अकाउंट बंद करना",
-    "adminUserEnable": "अकाउंट फिर चालू करना"
+    "adminUserEnable": "अकाउंट फिर चालू करना",
+    "documentFileRename": "फ़ाइल का नाम बदलना"
   },
   "continuations": {
     "fallback": "ने कुछ किया",
@@ -134,7 +135,8 @@
     "adminTestEmail": "ने टेस्ट ईमेल भेजा",
     "adminUserLogoutAll": "ने किसी को हर जगह से साइन आउट किया",
     "adminUserDisable": "ने अकाउंट बंद किया",
-    "adminUserEnable": "ने अकाउंट फिर चालू किया"
+    "adminUserEnable": "ने अकाउंट फिर चालू किया",
+    "documentFileRename": "ने एक फ़ाइल का नाम बदला"
   },
   "meta": {
     "kind": {

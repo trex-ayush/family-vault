@@ -82,6 +82,17 @@ export function useUpdateFileText(id) {
   });
 }
 
+/** Rename one file; the page shows the new name straight away. */
+export function useRenameFile(id) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ fileId, label }) => documentsApi.renameFile(id, fileId, label),
+    onSuccess: (doc) => {
+      if (doc?.id) qc.setQueryData(documentsKeys.detail(id), (prev) => ({ ...prev, ...doc }));
+    },
+  });
+}
+
 export function useRemoveFile(id) {
   const invalidate = useInvalidateContent();
   return useMutation({

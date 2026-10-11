@@ -54,9 +54,13 @@ export function describeActivityMeta(activity, t = (_k, f) => f) {
   const tt = (key, fallback, opts) => (opts ? t(key, fallback, opts) : t(key, fallback));
   const parts = [];
 
-  // The thing's own name first.
-  const label = [m.title, m.name, m.originalName].find((v) => typeof v === 'string' && v.trim() && !isId(v));
-  if (label) parts.push(`“${label.trim()}”`);
+  // A rename: old name -> new name. Otherwise the thing's own name first.
+  if (typeof m.oldName === 'string' && typeof m.name === 'string' && m.oldName !== m.name) {
+    parts.push(`“${m.oldName}” → “${m.name}”`);
+  } else {
+    const label = [m.title, m.name, m.originalName].find((v) => typeof v === 'string' && v.trim() && !isId(v));
+    if (label) parts.push(`“${label.trim()}”`);
+  }
 
   if (m.kind === 'login') parts.push(tt('meta.kind.login', 'password'));
   else if (m.kind === 'note') parts.push(tt('meta.kind.note', 'note'));

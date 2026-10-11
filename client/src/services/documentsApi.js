@@ -59,6 +59,9 @@ export const documentsApi = {
   /** PATCH /documents/:id/files/:fileId/text — { text } (null or '' clears it). Returns the updated Document. */
   updateFileText: (id, fileId, text) => apiClient.patch(`/documents/${id}/files/${fileId}/text`, { text }).then((res) => res.data),
 
+  /** PATCH /documents/:id/files/:fileId — { label } ('' = back to the uploaded name). Returns the updated Document. */
+  renameFile: (id, fileId, label) => apiClient.patch(`/documents/${id}/files/${fileId}`, { label }).then((res) => res.data),
+
   /** DELETE /documents/:id/files/:fileId */
   removeFile: (id, fileId) => apiClient.delete(`/documents/${id}/files/${fileId}`).then((res) => res.data),
 

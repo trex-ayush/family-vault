@@ -67,10 +67,18 @@
     "deleteFileDescription": "“{{name}}” बिन में चली जाएगी। आप इसे बिन से वापस ला सकते हैं।",
     "toasts": {
       "deleted": "बिन में भेज दी गई",
-      "deleteFailed": "फ़ाइल नहीं हटा पाए"
+      "deleteFailed": "फ़ाइल नहीं हटा पाए",
+      "renamed": "फ़ाइल का नाम बदल दिया",
+      "renameFailed": "फ़ाइल का नाम नहीं बदल सका"
     },
     "addHint": "हर फ़ोटो की कटिंग देख लें, फिर अपलोड करें।",
-    "uploadCount": "अपलोड करें ({{count}})"
+    "uploadCount": "अपलोड करें ({{count}})",
+    "renameTitle": "फ़ाइल का नाम बदलें",
+    "renameHint": "फ़ाइल का प्रकार (जैसे .jpg या .pdf) वही रहेगा, ताकि वह हर जगह खुले।",
+    "renameLabel": "फ़ाइल का नाम",
+    "renameReset": "“{{name}}” नाम फिर से रखने के लिए इसे खाली छोड़ दें।",
+    "rename": "नाम बदलें",
+    "fileOptions": "{{name}} के विकल्प"
   },
   "filePreview": {
     "previousFile": "पिछली फ़ाइल",
@@ -154,6 +162,7 @@
     "usePhoto": "यही फ़ोटो रखें",
     "showQueued": "यह फ़ाइल दिखाएँ",
     "uploadNow": "ये फ़ाइलें अभी सेव करें",
-    "viewFile": "यह फ़ाइल बड़ी करके देखें"
+    "viewFile": "यह फ़ाइल बड़ी करके देखें",
+    "renameFile": "इस फ़ाइल को नया नाम दें"
   }
 }

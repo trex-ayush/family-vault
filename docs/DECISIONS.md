@@ -38,11 +38,15 @@ English and Hindi. Where an older section below disagrees with this one, this on
   Members · Activity · Bin · Resize & compress · Settings (+ Platform admin for the owner). Phone bottom
   bar — Home · Folders · + Add · Search · More. Settings = Profile, Password, Theme, Family (name +
   default share duration), Notifications.
+- **Renaming a file** (2026-10-11, owner's request): each file in a document can be renamed
+  (`PATCH /documents/:id/files/:fileId` `{ label }`; `''` = back to the uploaded name). The new name is
+  what the app shows and what a download is saved as, keeping the original extension. Replacing or
+  reordering single files stays removed.
 - **Bin**: every delete (document, password, note, folder) goes to the Bin; only the platform admin
   deletes permanently. (Removing one file from a document is the exception — it is removed for good.)
 - **Removed**: document types, tags, expiry dates, custom fields on documents, linking a document to a
   family member and the `/people` pages, the "record" item kind, search filters, the Ctrl+K command
-  palette, folder colour/icon, grid/list and sort, advanced file actions (rename/replace/reorder), share
+  palette, folder colour/icon, grid/list and sort, advanced file actions (replace/reorder), share
   password/label/"include sensitive"/never-expiring links, re-auth (`/auth/reauth`, `X-Reauth`, the
   reveal endpoints), and the admin alerts that only those features could trigger.
 

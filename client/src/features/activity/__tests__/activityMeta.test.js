@@ -30,6 +30,12 @@ describe('describeActivityMeta', () => {
     expect(describeActivityMeta({ meta: { revoke: false, extendTo: '7d' } }, t)).toBe('link now lasts 7 days');
   });
 
+  it('shows a rename as old → new', () => {
+    expect(describeActivityMeta({ meta: { name: 'Papa Aadhaar', oldName: 'IMG_2041.jpg', title: 'Aadhaar card' } }, t)).toBe(
+      '“IMG_2041.jpg” → “Papa Aadhaar”',
+    );
+  });
+
   it('returns null when there is nothing useful to say', () => {
     expect(describeActivityMeta({ meta: {} }, t)).toBeNull();
     expect(describeActivityMeta({ meta: { event: 'invite_accepted', emailed: false } }, t)).toBeNull();

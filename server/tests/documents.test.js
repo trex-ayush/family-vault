@@ -343,9 +343,8 @@ describe('documents CRUD + upload validation', () => {
     expect(addFileRes.status).toBe(200);
     expect(addFileRes.body.files).toHaveLength(2);
 
-    // Rename / replace / reorder of a single file no longer exist.
-    const patchFile = await request(app).patch(`/api/documents/${docId}/files/${fileId}`).set(auth).send({ label: 'x' });
-    expect(patchFile.status).toBe(404);
+    // Replacing or reordering a single file no longer exist (renaming one is back — see
+    // "renaming a file" below).
     const replaceFile = await request(app)
       .put(`/api/documents/${docId}/files/${fileId}`)
       .set(auth)
@@ -387,6 +386,65 @@ describe('encrypt -> store -> retrieve -> decrypt round trip', () => {
     const thumbRes = await request(app).get(file.thumbUrl);
     expect(thumbRes.status).toBe(200);
     expect(thumbRes.headers['content-type']).toBe('image/webp');
+  });
+});
+
+describe('renaming a file', () => {
+  async function upload(auth, folder) {
+    const res = await request(app)
+      .post('/api/documents')
+      .set(auth)
+      .field('data', JSON.stringify({ title: 'Aadhaar', folderId: String(folder._id) }))
+      .attach('files', await pngBuffer(), { filename: 'IMG_2041.png', contentType: 'image/png' });
+    expect(res.status).toBe(201);
+    return res.body;
+  }
+
+  it('renames a file, and it downloads under the new name with its extension', async () => {
+    const { family, membership, auth } = await makeFamilyWithAdmin();
+    const doc = await upload(auth, await makeFolder(family._id, membership._id));
+    const fileId = doc.files[0].id;
+
+    const res = await request(app).patch(`/api/documents/${doc.id}/files/${fileId}`).set(auth).send({ label: '  Papa Aadhaar front  ' });
+    expect(res.status).toBe(200);
+    const file = res.body.files.find((f) => f.id === fileId);
+    expect(file.label).toBe('Papa Aadhaar front');
+    expect(file.originalName).toBe('IMG_2041.png');
+
+    const dl = await request(app).get(`${file.downloadUrl}`).query({ download: '1' });
+    expect(dl.status).toBe(200);
+    expect(dl.headers['content-disposition']).toContain('filename="Papa Aadhaar front.png"');
+
+    const logged = await mongoose.connection.collection('activities').findOne({ action: 'document.file.rename' });
+    expect(logged.meta).toMatchObject({ name: 'Papa Aadhaar front', oldName: 'IMG_2041.png' });
+  });
+
+  it('accepts a Hindi name, and an empty name goes back to the uploaded one', async () => {
+    const { family, membership, auth } = await makeFamilyWithAdmin();
+    const doc = await upload(auth, await makeFolder(family._id, membership._id));
+    const fileId = doc.files[0].id;
+
+    const hi = await request(app).patch(`/api/documents/${doc.id}/files/${fileId}`).set(auth).send({ label: 'पापा का आधार' });
+    expect(hi.status).toBe(200);
+    const dl = await request(app).get(hi.body.files[0].downloadUrl).query({ download: '1' });
+    expect(dl.status).toBe(200);
+    expect(dl.headers['content-disposition']).toContain(`filename*=UTF-8''${encodeURIComponent('पापा का आधार.png')}`);
+
+    const reset = await request(app).patch(`/api/documents/${doc.id}/files/${fileId}`).set(auth).send({ label: '' });
+    expect(reset.body.files[0].label).toBe('');
+  });
+
+  it('rejects a read-only member, an unknown file and a too-long name', async () => {
+    const { family, membership, auth } = await makeFamilyWithAdmin();
+    const doc = await upload(auth, await makeFolder(family._id, membership._id));
+    const fileId = doc.files[0].id;
+
+    await request(app).patch(`/api/documents/${doc.id}/files/${new mongoose.Types.ObjectId()}`).set(auth).send({ label: 'x' }).expect(404);
+    await request(app).patch(`/api/documents/${doc.id}/files/${fileId}`).set(auth).send({ label: 'x'.repeat(201) }).expect(400);
+    await request(app).patch(`/api/documents/${doc.id}/files/${fileId}`).set(auth).send({ label: 'x', other: 1 }).expect(400);
+
+    await Membership.updateOne({ _id: membership._id }, { role: 'member', access: 'read' });
+    await request(app).patch(`/api/documents/${doc.id}/files/${fileId}`).set(auth).send({ label: 'x' }).expect(403);
   });
 });
 

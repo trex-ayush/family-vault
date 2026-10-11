@@ -19,6 +19,7 @@ import { validateAndProcessFile } from './fileValidation.js';
 import { shouldLogView } from './viewThrottle.js';
 import { adjustFamilyStorageBytes } from './storageAccounting.js';
 import { sealText } from './secretText.js';
+import { FILE_LABEL_MAX } from './fileNames.js';
 import { getEffectiveFamilySettings } from '../../utils/effectiveSettings.js';
 import { buildBreadcrumbs } from '../folders/folderTree.js';
 import { resolveTargetFolder } from '../folders/sharedFolder.js';
@@ -54,6 +55,8 @@ const idParamSchema = z.object({ id: objectId });
 const FILE_TEXT_MAX = 20000;
 const fileTextBodySchema = z.object({ text: z.string().max(FILE_TEXT_MAX * 2).nullable() });
 const fileIdParamSchema = z.object({ id: objectId, fileId: objectId });
+// '' = go back to the name the file was uploaded with.
+const fileLabelBodySchema = z.object({ label: z.string().trim().max(FILE_LABEL_MAX) }).strict();
 
 const zipLinkBodySchema = z.object({ fileIds: z.array(objectId).optional() });
 
@@ -477,6 +480,44 @@ router.patch(
         documentId: doc._id,
         folderId: doc.folderId,
         meta: { fields: ['fileText'], fileId: req.params.fileId },
+      });
+
+      const breadcrumbs = await loadBreadcrumbsForDoc(familyId, doc);
+      res.json(serializeDocumentDetail(doc.toObject(), { breadcrumbs }));
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+/**
+ * PATCH /documents/:id/files/:fileId — `{ label }`: rename one file (the name shown in the app and
+ * used when it's downloaded; '' = back to the uploaded name). Write access. Returns the Document.
+ */
+router.patch(
+  '/:id/files/:fileId',
+  requireWrite,
+  validate({ params: fileIdParamSchema, body: fileLabelBodySchema }),
+  async (req, res, next) => {
+    try {
+      const { familyId, membershipId } = req.auth;
+      const doc = await Document.findOne(scopeToFamily(familyId, { _id: req.params.id }));
+      if (!doc) throw new ApiError(404, 'DOCUMENT_NOT_FOUND', 'Document not found');
+      const file = doc.files.id(req.params.fileId);
+      if (!file || file.deletedAt) throw new ApiError(404, 'FILE_NOT_FOUND', 'File not found');
+
+      const oldName = file.label || file.originalName;
+      file.label = req.body.label;
+      doc.updatedBy = membershipId;
+      await doc.save();
+
+      await logActivity(req, {
+        action: 'document.file.rename',
+        targetType: 'document',
+        targetId: doc._id,
+        documentId: doc._id,
+        folderId: doc.folderId,
+        meta: { name: file.label || file.originalName, oldName, title: doc.title },
       });
 
       const breadcrumbs = await loadBreadcrumbsForDoc(familyId, doc);

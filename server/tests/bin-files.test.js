@@ -120,8 +120,9 @@ describe('deleting one file moves it to the Bin', () => {
     // ZIP download of the document.
     const zipLink = await authed(request(app).post(`/api/documents/${docId}/zip-link`), s).send({});
     const zip = await downloadZip(zipLink.body.url);
-    expect(zip).toContain('back.png');
-    expect(zip).not.toContain('front.png');
+    // Files are named by their shown name (label "Back") plus the original extension.
+    expect(zip).toContain('Back.png');
+    expect(zip).not.toMatch(/front\.png/i);
     const zipOfDeleted = await authed(request(app).post(`/api/documents/${docId}/zip-link`), s).send({ fileIds: [front.id] });
     expect(zipOfDeleted.status).toBe(400);
 

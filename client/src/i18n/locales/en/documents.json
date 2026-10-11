@@ -67,10 +67,18 @@
     "deleteFileDescription": "“{{name}}” moves to the Bin. You can restore it from the Bin.",
     "toasts": {
       "deleted": "Moved to the Bin",
-      "deleteFailed": "Could not delete the file"
+      "deleteFailed": "Could not delete the file",
+      "renamed": "File renamed",
+      "renameFailed": "Could not rename the file"
     },
     "addHint": "Check the crop of each photo, then upload.",
-    "uploadCount": "Upload ({{count}})"
+    "uploadCount": "Upload ({{count}})",
+    "renameTitle": "Rename file",
+    "renameHint": "The file keeps its type (like .jpg or .pdf), so it still opens anywhere.",
+    "renameLabel": "File name",
+    "renameReset": "Leave it empty to use “{{name}}” again.",
+    "rename": "Rename",
+    "fileOptions": "Options for {{name}}"
   },
   "filePreview": {
     "previousFile": "Previous file",
@@ -154,6 +162,7 @@
     "usePhoto": "Keep this photo",
     "showQueued": "Show this file",
     "uploadNow": "Save these files now",
-    "viewFile": "See this file big"
+    "viewFile": "See this file big",
+    "renameFile": "Give this file a new name"
   }
 }

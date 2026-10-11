@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import Button from '@/components/ui/Button.jsx';
+import Button, { ICON_BUTTON_CLASS } from '@/components/ui/Button.jsx';
+import { Dropdown, DropdownDivider, DropdownItem } from '@/components/ui/Dropdown.jsx';
 import ConfirmDrawer from '@/components/ui/ConfirmDrawer.jsx';
 import { UploadProgressList } from '@/components/ui/FileDropzone.jsx';
 import ShareButton from '@/features/share/ShareButton.jsx';
@@ -15,15 +16,15 @@ import { useCropQueue } from './crop/useCropQueue.jsx';
 import AddFilesDrawer from './AddFilesDrawer.jsx';
 import { FileTextEditor, FileTextPanel } from './FileTextBlock.jsx';
 import { useDocumentScan } from '@/features/scan/useDocumentScan.js';
-import { Camera, Download, FileText, Plus, Trash2 } from 'lucide-react';
+import { Camera, Download, EllipsisVertical, FileText, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCanWrite } from '@/hooks/useCanWrite.js';
 import Tooltip from '@/components/ui/Tooltip.jsx';
-
-const fileName = (file) => file.label || file.originalName || '';
+import RenameFileDrawer from './RenameFileDrawer.jsx';
+import { downloadName, fileName } from './fileNames.js';
 
 /**
  * The files of one document: tap a tile to view it full-screen; each file has Download · Share ·
- * Delete. "+ Add files" / "Take photo" open a short step (AddFilesDrawer) where photos are
+ * a ⋮ menu (Rename, Move to Bin). "+ Add files" / "Take photo" open a short step (AddFilesDrawer) where photos are
  * auto-cropped and each crop can be adjusted, then Upload (with a progress bar). The last file
  * can't be deleted — a document always keeps at least one (delete the document instead).
  */
@@ -38,6 +39,7 @@ export default function FileGallery({ document }) {
   const [pendingTexts, setPendingTexts] = useState({}); // text read from each picked file, by queue id
   const [waitingForScan, setWaitingForScan] = useState(false); // Upload pressed while still reading
   const [editingText, setEditingText] = useState(null); // the file whose text is being corrected
+  const [renaming, setRenaming] = useState(null); // the file being renamed
 
   const addFiles = useAddFiles(document.id);
   const removeFile = useRemoveFile(document.id);
@@ -126,7 +128,7 @@ export default function FileGallery({ document }) {
       <button
         type="button"
         onClick={() => setPreviewIndex(index)}
-        className={`block w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 ${wide ? 'aspect-[16/9] lg:aspect-[4/3]' : 'aspect-[4/3]'}`}
+        className={`block w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 ${wide ? 'aspect-[16/9] rounded-t-xl lg:aspect-[4/3] lg:rounded-tr-none' : 'aspect-[4/3] rounded-t-xl'}`}
         aria-label={t('fileGallery.viewFile', 'View {{name}}', { name: fileName(file) })}
       >
         {file.thumbUrl ? (
@@ -155,24 +157,45 @@ export default function FileGallery({ document }) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => filesApi.triggerDownload(file.downloadUrl, file.originalName)}
+            onClick={() => filesApi.triggerDownload(file.downloadUrl, downloadName(file))}
             aria-label={t('common:actions.download', 'Download')}
           >
             <Download className="h-4 w-4" aria-hidden="true" />
           </Button>
         </Tooltip>
         <ShareButton targetType="document" targetId={document.id} fileIds={[file.id]} variant="icon" label={t('fileGallery.shareFile', 'Share this file')} />
-        {canWrite && files.length > 1 && (
-          <Tooltip content={t('tip.deleteFile', 'Put this file in the Bin')} className="ml-auto inline-flex">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDeleteTarget(file)}
-              aria-label={t('common:actions.delete', 'Delete')}
-            >
-              <Trash2 className="h-4 w-4" aria-hidden="true" />
-            </Button>
-          </Tooltip>
+        {/* Rename and Move to Bin sit in a ⋮ menu: four full-size buttons don't fit a phone tile. */}
+        {canWrite && (
+          <Dropdown
+            align="right"
+            wrapperClassName="ml-auto inline-block"
+            trigger={
+              <Tooltip content={t('common:tip.moreOptions', 'More things you can do')}>
+                <span className={ICON_BUTTON_CLASS} aria-label={t('fileGallery.fileOptions', 'Options for {{name}}', { name: fileName(file) })}>
+                  <EllipsisVertical className="h-5 w-5" aria-hidden="true" />
+                </span>
+              </Tooltip>
+            }
+          >
+            <DropdownItem onSelect={() => setRenaming(file)} tip={t('tip.renameFile', 'Give this file a new name')}>
+              <span className="flex items-center gap-2 whitespace-nowrap">
+                <Pencil className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                {t('fileGallery.rename', 'Rename')}
+              </span>
+            </DropdownItem>
+            {/* A document always keeps at least one file. */}
+            {files.length > 1 && (
+              <>
+                <DropdownDivider />
+                <DropdownItem danger onSelect={() => setDeleteTarget(file)} tip={t('tip.deleteFile', 'Put this file in the Bin')}>
+                  <span className="flex items-center gap-2 whitespace-nowrap">
+                    <Trash2 className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                    {t('detail.moveToBin', 'Move to Bin')}
+                  </span>
+                </DropdownItem>
+              </>
+            )}
+          </Dropdown>
         )}
       </div>
     </>
@@ -237,7 +260,8 @@ export default function FileGallery({ document }) {
       {withText ? (
         <div className="space-y-3">
           {files.map((file, index) => (
-            <div key={file.id} className={`overflow-hidden lg:flex lg:items-start ${CARD_SURFACE}`}>
+            // Not overflow-hidden: the file's ⋮ menu has to open over the card's edge.
+            <div key={file.id} className={`lg:flex lg:items-start ${CARD_SURFACE}`}>
               <div className="lg:w-60 lg:flex-shrink-0 lg:self-stretch lg:border-r lg:border-neutral-100 dark:lg:border-neutral-700">{fileTile(file, index, true)}</div>
               <FileTextPanel
                 text={file.text}
@@ -250,7 +274,7 @@ export default function FileGallery({ document }) {
       ) : (
         <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 ${GRID_GAP}`}>
           {files.map((file, index) => (
-            <div key={file.id} className={`overflow-hidden ${CARD_SURFACE}`}>
+            <div key={file.id} className={CARD_SURFACE}>
               {fileTile(file, index)}
             </div>
           ))}
@@ -274,6 +298,7 @@ export default function FileGallery({ document }) {
       )}
 
       <FileTextEditor documentId={document.id} file={editingText} onClose={() => setEditingText(null)} />
+      <RenameFileDrawer documentId={document.id} file={renaming} onClose={() => setRenaming(null)} />
 
       <ConfirmDrawer
         isOpen={Boolean(deleteTarget)}

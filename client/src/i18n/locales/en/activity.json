@@ -78,7 +78,8 @@
     "adminTestEmail": "Sent a test email",
     "adminUserLogoutAll": "Signed a person out everywhere",
     "adminUserDisable": "Turned off an account",
-    "adminUserEnable": "Turned an account back on"
+    "adminUserEnable": "Turned an account back on",
+    "documentFileRename": "Renamed a file"
   },
   "continuations": {
     "fallback": "did something",
@@ -134,7 +135,8 @@
     "adminTestEmail": "sent a test email",
     "adminUserLogoutAll": "signed a person out everywhere",
     "adminUserDisable": "turned off an account",
-    "adminUserEnable": "turned an account back on"
+    "adminUserEnable": "turned an account back on",
+    "documentFileRename": "renamed a file"
   },
   "meta": {
     "kind": {

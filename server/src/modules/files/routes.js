@@ -10,6 +10,7 @@ import { ApiError } from '../../middleware/errorHandler.js';
 import { logActivity } from '../../services/activityLogger.js';
 import { getDescendantFolderIds } from '../folders/folderTree.js';
 import { verifyZipToken } from './zipTokens.js';
+import { downloadNameOf } from '../documents/fileNames.js';
 import { env } from '../../config/env.js';
 
 const router = express.Router();
@@ -47,6 +48,16 @@ const SAFE_MIME = new Set([
 
 function sanitizeFilename(name) {
   return String(name || 'file').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').slice(0, 200) || 'file';
+}
+
+/**
+ * `Content-Disposition` for any file name, including Hindi ("पापा का आधार.jpg"): a header may only
+ * hold plain characters, so `filename` gets an ASCII stand-in and `filename*` the real UTF-8 name
+ * (RFC 6266), which every current browser uses.
+ */
+function contentDisposition(type, name) {
+  const ascii = name.replace(/[^\x20-\x7e]/g, '_');
+  return `${type}; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(name)}`;
 }
 
 function uniqueName(used, name) {
@@ -107,7 +118,7 @@ router.get('/zip/:token', async (req, res, next) => {
 
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename="${sanitizeFilename(zipBaseName)}.zip"`);
+    res.setHeader('Content-Disposition', contentDisposition('attachment', `${sanitizeFilename(zipBaseName)}.zip`));
 
     const archive = archiver('zip', { zlib: { level: 9 } });
     archive.on('error', (err) => {
@@ -138,7 +149,7 @@ router.get('/zip/:token', async (req, res, next) => {
         // eslint-disable-next-line no-await-in-loop
         const cipherBuffer = await storage.getBuffer(file.storageKey);
         const plainBuffer = decryptFileBuffer(cipherBuffer, file.encryption);
-        const entryName = uniqueName(localUsed, sanitizeFilename(file.originalName || `${file._id}`));
+        const entryName = uniqueName(localUsed, sanitizeFilename(downloadNameOf(file) || `${file._id}`));
         archive.append(plainBuffer, { name: `${prefix}${entryName}` });
         fileCount += 1;
       }
@@ -213,8 +224,9 @@ router.get('/:signedToken', async (req, res, next) => {
     res.setHeader('Accept-Ranges', 'bytes');
 
     const isDownload = req.query.download === '1';
-    const filename = useThumb ? sanitizeFilename(`thumb-${file.originalName || fileId}.webp`) : sanitizeFilename(file.originalName);
-    res.setHeader('Content-Disposition', `${isDownload ? 'attachment' : 'inline'}; filename="${filename}"`);
+    // A renamed file downloads under its new name (keeping the original extension).
+    const filename = useThumb ? sanitizeFilename(`thumb-${file.originalName || fileId}.webp`) : sanitizeFilename(downloadNameOf(file));
+    res.setHeader('Content-Disposition', contentDisposition(isDownload ? 'attachment' : 'inline', filename));
 
     const total = plainBuffer.length;
     const range = req.headers.range;
