@@ -19,6 +19,7 @@ import enPlatform from './locales/en/platform.json';
 import enResize from './locales/en/resize.json';
 import enAdmin from './locales/en/admin.json';
 import enAdminOps from './locales/en/adminOps.json';
+import enLanding from './locales/en/landing.json';
 
 import hiCommon from './locales/hi/common.json';
 import hiAuth from './locales/hi/auth.json';
@@ -37,6 +38,7 @@ import hiPlatform from './locales/hi/platform.json';
 import hiResize from './locales/hi/resize.json';
 import hiAdmin from './locales/hi/admin.json';
 import hiAdminOps from './locales/hi/adminOps.json';
+import hiLanding from './locales/hi/landing.json';
 
 // Persisted-language localStorage key. Same naming convention as
 // ThemeContext's `family-vault-theme` (docs/UI_KIT.md §Contexts) — kept
@@ -68,6 +70,7 @@ const NAMESPACES = [
   'resize',
   'admin',
   'adminOps',
+  'landing',
 ];
 
 const resources = {
@@ -89,6 +92,7 @@ const resources = {
     resize: enResize,
     admin: enAdmin,
     adminOps: enAdminOps,
+    landing: enLanding,
   },
   hi: {
     common: hiCommon,
@@ -108,6 +112,7 @@ const resources = {
     resize: hiResize,
     admin: hiAdmin,
     adminOps: hiAdminOps,
+    landing: hiLanding,
   },
 };
 

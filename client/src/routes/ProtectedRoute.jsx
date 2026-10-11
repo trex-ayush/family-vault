@@ -1,6 +1,9 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext.jsx';
 import { AppShellSkeleton } from '@/components/ui/Skeleton.jsx';
+// Not lazy: it replaces the pre-rendered copy in index.html, so a loading placeholder would flash.
+import Landing from '@/pages/landing/Landing.jsx';
+import { hasSavedSignIn } from './frontDoor.js';
 
 /**
  * ProtectedRoute — route guard. Redirects to `/login` (preserving the
@@ -14,10 +17,17 @@ import { AppShellSkeleton } from '@/components/ui/Skeleton.jsx';
  * and as a layout route element rendering `<Outlet/>` when used with
  * `element={<ProtectedRoute />}` + `children` in the router config — use
  * whichever fits the route tree shape; both are supported.
+ *
+ * At `/` a visitor who isn't signed in gets the public landing page instead of the login screen
+ * — straight away when nothing is saved on this device, else once the sign-in check fails.
  */
 export default function ProtectedRoute({ children }) {
   const { isAuthenticated, loading, memberships } = useAuth();
   const location = useLocation();
+
+  if (location.pathname === '/' && !isAuthenticated && (!loading || !hasSavedSignIn())) {
+    return <Landing />;
+  }
 
   if (loading) {
     return <AppShellSkeleton />;

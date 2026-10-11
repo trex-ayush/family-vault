@@ -229,3 +229,67 @@ html[data-keyboard-open] :is(input, textarea, select, [contenteditable]) {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* Landing page (pages/landing/Landing.jsx): its menu links glide to each section. Only there —
+   inside the app, jumping to the top of a new page must stay instant — and never for people who
+   asked their phone for less motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html:has(#landing-page) {
+    scroll-behavior: smooth;
+  }
+  /* Sections below the first screen fade up as they arrive (Landing.jsx adds/removes the class). */
+  #landing-page [data-reveal] {
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  #landing-page .reveal-pending {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+/* Selected text uses the brand coral instead of the browser's blue — everywhere, both themes,
+   dark enough to see and light enough that the words stay easy to read. */
+::selection {
+  background-color: #ffc9c2; /* primary-200 */
+  color: #1c1917; /* neutral-900 */
+}
+html.dark ::selection {
+  background-color: rgb(255 90 95 / 0.55); /* primary-500 */
+  color: #fff;
+}
+
+/* Landing page cards (data-spotlight): with a mouse, a soft coral glow sits right under the
+   pointer inside the card, and the card lifts a little. Landing.jsx sets --spot-x / --spot-y. */
+@media (hover: hover) and (pointer: fine) {
+  #landing-page [data-spotlight] {
+    position: relative;
+    isolation: isolate;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  #landing-page [data-spotlight]::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: radial-gradient(240px circle at var(--spot-x, 50%) var(--spot-y, 50%), rgb(255 90 95 / 0.14), transparent 65%);
+  }
+  #landing-page [data-spotlight]:hover::before {
+    opacity: 1;
+  }
+  #landing-page [data-spotlight]:hover {
+    border-color: #ffc9c2; /* primary-200 */
+    box-shadow: var(--shadow-card-hover);
+  }
+  html.dark #landing-page [data-spotlight]:hover {
+    border-color: rgb(255 90 95 / 0.35);
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  #landing-page [data-spotlight]:hover {
+    transform: translateY(-3px);
+  }
+}

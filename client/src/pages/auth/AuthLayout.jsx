@@ -90,7 +90,7 @@ function AuthPhoto({ name, widths, media, sizes, width, height, position }) {
 /** Link style for the auth pages' text links ("Forgot password?", "Create one", "Sign in"). */
 export const AUTH_LINK = TEXT_LINK;
 
-function BrandMark({ onPhoto = false }) {
+export function BrandMark({ onPhoto = false, nameClassName = '' }) {
   return (
     <span className="inline-flex items-center gap-2.5">
       <span
@@ -101,9 +101,9 @@ function BrandMark({ onPhoto = false }) {
         <img src="/assets/logo.png" alt="" width={256} height={234} decoding="async" className="h-7 w-auto" />
       </span>
       <span
-        className={`text-base font-bold ${
+        className={`whitespace-nowrap text-base font-bold ${
           onPhoto ? 'text-white [text-shadow:0_1px_3px_rgb(0_0_0/0.45)]' : 'text-neutral-900 dark:text-neutral-100'
-        }`}
+        } ${nameClassName}`}
       >
         Family Vault
       </span>

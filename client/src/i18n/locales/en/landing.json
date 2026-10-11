@@ -1,0 +1,160 @@
+{
+  "nav": {
+    "start": "Get started",
+    "main": "Main menu",
+    "features": "Features",
+    "tour": "Take a look",
+    "how": "How it works",
+    "faq": "Questions",
+    "dark": "Switch to dark mode",
+    "light": "Switch to light mode",
+    "safety": "Safety",
+    "top": "Back to top"
+  },
+  "hero": {
+    "eyebrow": "Free for every Indian family · English and हिन्दी",
+    "text": "Keep Aadhaar, PAN, passports, bank papers and passwords in one private vault. Find anything in seconds, share it safely, and let the whole family use it — Mummy and Papa too.",
+    "start": "Get started — it's free",
+    "trustEncrypted": "AES-256 encrypted",
+    "trustLanguages": "English and हिन्दी",
+    "trustDevices": "Any phone or PC",
+    "titleStart": "All your family's important documents,",
+    "titleAccent": "safe in one place",
+    "note": "Takes a minute. No card needed.",
+    "trustFree": "100% free",
+    "trustFreeText": "No card, no hidden charges",
+    "trustEncryptedText": "Files and passwords locked",
+    "trustLanguagesText": "Switch with one tap",
+    "trustDevicesText": "Nothing to install"
+  },
+  "video": {
+    "label": "A short video showing how a family uses Family Vault",
+    "play": "Play the video",
+    "soundOn": "Turn the sound on",
+    "soundOff": "Turn the sound off"
+  },
+  "kicker": {
+    "why": "Why Family Vault",
+    "moments": "Real life",
+    "tour": "A quick look",
+    "safety": "Safety",
+    "share": "Sharing",
+    "steps": "Getting started",
+    "faq": "Questions"
+  },
+  "moments": {
+    "title": "When you'll need it",
+    "text": "The papers are always asked for at the worst moment. Now they're always in your pocket.",
+    "bankTitle": "Bank and KYC",
+    "bankText": "Aadhaar and PAN ready to show or send, without hunting through the cupboard.",
+    "schoolTitle": "School and college admission",
+    "schoolText": "Birth certificate, marksheets and photos for the forms — made smaller with Resize & compress.",
+    "hospitalTitle": "Hospital visits",
+    "hospitalText": "Health insurance card and reports in hand, even when someone else is at the hospital.",
+    "travelTitle": "Passport and travel",
+    "travelText": "Passport, visa and tickets on your phone, and a copy you can share with family back home.",
+    "farTitle": "Helping parents from far away",
+    "farText": "Mummy and Papa add a photo, you open it from another city. No more \"send it on WhatsApp again\".",
+    "propertyTitle": "Property and insurance",
+    "propertyText": "Sale deeds, policies and renewal dates in one place, for the day the family needs them."
+  },
+  "why": {
+    "title": "Made for the whole family",
+    "text": "Simple enough for parents, safe enough for your most important papers.",
+    "easyTitle": "Easy for parents",
+    "easyText": "Big buttons, plain words and the whole app in Hindi. Add a document in three taps.",
+    "privateTitle": "Private and encrypted",
+    "privateText": "Files and passwords are stored encrypted. Only the people in your family can see them.",
+    "shareTitle": "Share without worry",
+    "shareText": "Send a document on WhatsApp with a link that switches off by itself. Passwords and notes are never shared.",
+    "familyTitle": "The whole family together",
+    "familyText": "Invite family members and choose who can only look and who can add or change things.",
+    "scanTitle": "Scan with your camera",
+    "scanText": "Take a photo of a paper: the edges are cut neatly and the words are read, so you can search them later.",
+    "findTitle": "Find anything fast",
+    "findText": "Search by name, note or the words inside a document. No more digging through WhatsApp chats."
+  },
+  "tour": {
+    "title": "Take a look inside",
+    "text": "This is what your family sees on the phone.",
+    "goTo": "Show picture {{n}}",
+    "homeTitle": "Everything at a glance",
+    "homeText": "The family's folders and how much is saved, on one screen.",
+    "docTitle": "Every document in one place",
+    "docText": "Photos of every page, with notes like \"Keep a copy for bank KYC\".",
+    "passwordTitle": "Passwords kept safe",
+    "passwordText": "PINs stay hidden until you tap the eye. Copy with one tap.",
+    "hindiTitle": "Fully in Hindi",
+    "hindiText": "Tap हिन्दी at the top and the whole app switches."
+  },
+  "safety": {
+    "title": "How we keep it safe",
+    "text": "Your documents are your family's most private papers. This is how Family Vault protects them.",
+    "encryptTitle": "Encrypted files and passwords",
+    "encryptText": "Every file and saved password is locked with AES-256 encryption before it is stored.",
+    "loginTitle": "Your login password stays secret",
+    "loginText": "It is stored scrambled, never as you typed it. Too many wrong tries are blocked.",
+    "idleTitle": "Signs out by itself",
+    "idleText": "Left the app open? It signs you out after an hour without use.",
+    "everywhereTitle": "Lost a phone? You stay in control",
+    "everywhereText": "Change your password and every other phone and computer is signed out.",
+    "linksTitle": "Links that switch off",
+    "linksText": "Shared links stop working by themselves. Passwords and notes are never shared.",
+    "activityTitle": "See who did what",
+    "activityText": "Activity shows who added, opened or shared each document."
+  },
+  "share": {
+    "title": "Need to send a document? Share it safely",
+    "text": "The bank, school or a relative needs a copy? Create a link and send it on WhatsApp.",
+    "point1": "The link switches off by itself after 12 hours, 1 day or 7 days",
+    "point2": "Switch it off yourself at any time",
+    "point3": "See when the link was opened",
+    "shot": "Sharing a car insurance document with a link that lasts 12 hours"
+  },
+  "steps": {
+    "title": "Start in three easy steps",
+    "oneTitle": "Create your family",
+    "oneText": "Sign up with Google or your email and give your family a name.",
+    "twoTitle": "Add your documents",
+    "twoText": "Take a photo, pick from your gallery or add a PDF. Put it in a folder.",
+    "threeTitle": "Invite your family",
+    "threeText": "Send an invite on WhatsApp so everyone has the papers when they need them."
+  },
+  "extra": {
+    "title": "And a few more helpful things",
+    "bin": "Deleted something by mistake? Bring it back from the Bin.",
+    "resize": "Make a photo smaller for online forms with Resize & compress.",
+    "activity": "See who added, opened or shared what in Activity."
+  },
+  "faq": {
+    "title": "Common questions",
+    "freeQ": "Is Family Vault really free?",
+    "freeA": "Yes. Family Vault is completely free for every family. There is no card to add and no hidden charge.",
+    "safeQ": "Is my family's data safe?",
+    "safeA": "Yes. Your files and passwords are stored encrypted, and only the members of your family can see them. When you share a document, the link switches off by itself, and passwords and notes are never shared.",
+    "parentsQ": "Can my parents use it?",
+    "parentsA": "Yes. Family Vault is made to be simple, with big buttons and plain words. It works fully in Hindi, and parents can add a document by just taking a photo.",
+    "hindiQ": "Can I use it in Hindi?",
+    "hindiA": "Yes. Every screen is available in English and हिन्दी. Each person can pick their own language with one tap.",
+    "devicesQ": "Does it work on a phone and a computer?",
+    "devicesA": "Yes. It works in the browser on any phone, tablet or computer, and you can add it to your phone's home screen like an app.",
+    "familyQ": "Who can see my documents?",
+    "familyA": "Only the people you invite to your family. You choose who can only look and who can add or change things, and you can remove anyone at any time.",
+    "deleteQ": "What if I delete something by mistake?",
+    "deleteA": "Deleted documents go to the Bin first, so you can bring them back."
+  },
+  "cta": {
+    "title": "Keep your family's papers safe, starting today",
+    "text": "It takes a minute to set up. Add your first document now.",
+    "start": "Get started — it's free"
+  },
+  "sticky": {
+    "start": "Get started — it's free"
+  },
+  "footer": {
+    "tagline": "Your family's important papers, safe and always at hand.",
+    "login": "Log in",
+    "signup": "Create an account",
+    "rights": "© {{year}} Family Vault"
+  }
+}

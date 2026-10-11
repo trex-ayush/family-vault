@@ -5,6 +5,7 @@ import { getServerWakeState, retryServerWake, subscribeServerWake } from '@/serv
 import { wakePhase, wakeProgress, wakeStatusIndex } from '@/services/serverWakeTiming.js';
 import Button from '@/components/ui/Button.jsx';
 import { CARD_SURFACE } from '@/components/ui/tokens.js';
+import { isFrontDoorVisit } from '@/routes/frontDoor.js';
 
 /**
  * WakeUpScreen — full-screen "opening your vault" screen shown while the sleeping API server
@@ -192,6 +193,7 @@ export default function WakeUpScreen() {
 
   const elapsedMs = wake.startedAt ? Math.max(0, Date.now() - wake.startedAt) : 0;
   const phase = wakePhase({ awake: wake.awake, elapsedMs, online: wake.online });
-  if (phase === 'hidden') return null;
+  // The landing page needs nothing from the server, so it never waits behind this screen.
+  if (phase === 'hidden' || isFrontDoorVisit()) return null;
   return <WakeUpView phase={phase} elapsedMs={elapsedMs} />;
 }
