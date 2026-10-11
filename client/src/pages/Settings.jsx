@@ -12,6 +12,7 @@ import SettingsProfile from './SettingsProfile.jsx';
 import SettingsPassword from './SettingsPassword.jsx';
 import SettingsFamily from './SettingsFamily.jsx';
 import SettingsNotifications from './SettingsNotifications.jsx';
+import { DeleteFamilySection, LeaveFamilySection } from '@/features/family/FamilyDangerZone.jsx';
 
 const TWO_COLUMNS = `${SECTION_GAP} lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0`;
 
@@ -27,8 +28,10 @@ const TAB_FROM_PATH = {
 
 /**
  * Settings page (`/settings`, `/settings/:tab`). Two tabs:
- *  - **My account** (everyone): Profile (name, avatar colour) and Password, each with its own Save.
- *  - **Family** (admins only): family name + default share-link duration, then the alert emails.
+ *  - **My account** (everyone): Profile (name, avatar colour) and Password, each with its own Save;
+ *    everyone but the owner can also Leave the family here.
+ *  - **Family** (admins only): family name + default share-link duration, then the alert emails;
+ *    the owner can Delete the family at the bottom.
  * With only one tab to show (non-admins) there's no tab bar, just the content. Theme and
  * language live in the navbar's profile menu and the phone's More menu. Deployment-wide limits
  * and the sign-in policy are on the platform owner's `/platform-settings` page, not here.
@@ -37,6 +40,7 @@ export default function Settings() {
   const { t } = useTranslation('settings');
   const { membership } = useAuth();
   const isAdmin = membership?.role === 'admin';
+  const isOwner = Boolean(membership?.isOwner);
   const params = useParams();
   const navigate = useNavigate();
 
@@ -48,9 +52,12 @@ export default function Settings() {
 
   // Two sections side by side from lg (Profile | Password, Family | Alerts); stacked on phones.
   const account = (
-    <div className={TWO_COLUMNS}>
-      <SettingsProfile />
-      <SettingsPassword />
+    <div className={SECTION_GAP}>
+      <div className={TWO_COLUMNS}>
+        <SettingsProfile />
+        <SettingsPassword />
+      </div>
+      {membership && !isOwner && <LeaveFamilySection />}
     </div>
   );
 
@@ -69,9 +76,12 @@ export default function Settings() {
           </TabsList>
           <TabsContent value="account">{account}</TabsContent>
           <TabsContent value="family">
-            <div className={TWO_COLUMNS}>
-              <SettingsFamily family={family} />
-              <SettingsNotifications family={family} />
+            <div className={SECTION_GAP}>
+              <div className={TWO_COLUMNS}>
+                <SettingsFamily family={family} />
+                <SettingsNotifications family={family} />
+              </div>
+              {isOwner && <DeleteFamilySection />}
             </div>
           </TabsContent>
         </Tabs>

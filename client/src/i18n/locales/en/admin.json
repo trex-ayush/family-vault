@@ -176,7 +176,8 @@
     "memberStatus": {
       "active": "Active",
       "invited": "Invite pending",
-      "disabled": "Disabled"
+      "disabled": "Disabled",
+      "family_deleted": "Family deleted"
     },
     "memberColumns": {
       "name": "Name",
@@ -191,6 +192,23 @@
       "members": "Members",
       "membersEmpty": "No members",
       "recentActivity": "Recent activity"
+    },
+    "deletedBadge": "Deleted",
+    "statusLabel": "Show",
+    "status": {
+      "all": "All",
+      "active": "Active",
+      "deleted": "Deleted"
+    },
+    "deleted": {
+      "notice": "Its owner deleted this family on {{date}}. Members can’t see it until you restore it.",
+      "restore": "Restore family",
+      "purge": "Delete forever",
+      "purgeTitle": "Delete “{{name}}” forever?",
+      "purgeDescription": "Every document, file, password and note in this family is erased for good, along with its members and activity. This can’t be undone.",
+      "restored": "“{{name}}” is back for its members",
+      "purged": "“{{name}}” was deleted forever",
+      "failed": "Something went wrong. Please try again."
     }
   },
   "admins": {

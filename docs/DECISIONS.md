@@ -42,6 +42,13 @@ English and Hindi. Where an older section below disagrees with this one, this on
   (`PATCH /documents/:id/files/:fileId` `{ label }`; `''` = back to the uploaded name). The new name is
   what the app shows and what a download is saved as, keeping the original extension. Replacing or
   reordering single files stays removed.
+- **Deleting / leaving a family** (2026-10-11, owner's request): only the **owner** can delete a family
+  (`DELETE /family`, typing its name to confirm). It is a soft delete — the family gets `deletedAt` and
+  every membership moves to status `family_deleted`, so it vanishes for all members at once and its
+  share links stop working. An app admin can **restore** it (`POST /admin/families/:id/restore`); only
+  the **super admin** can remove it for good (`DELETE /admin/families/:id`), like emptying the Bin.
+  Any member except the owner can **leave** (`POST /family/leave`); what they added stays, and unlike
+  being removed by an admin they stay signed in (they may be in other families).
 - **Bin**: every delete (document, password, note, folder) goes to the Bin; only the platform admin
   deletes permanently. (Removing one file from a document is the exception — it is removed for good.)
 - **Removed**: document types, tags, expiry dates, custom fields on documents, linking a document to a

@@ -419,11 +419,13 @@ export function memberAddedEmail({ familyName, memberName, memberEmail, access, 
   });
 }
 
-export function memberRemovedEmail({ familyName, memberName, byName, lang }) {
+export function memberRemovedEmail({ familyName, memberName, byName, left = false, lang }) {
   const c = common(lang);
   const name = memberName || c.member;
   const t = [
-    byName
+    left
+      ? tr(lang, `${name} left ${familyName}.`, `${name} ने ${familyName} छोड़ दिया।`)
+      : byName
       ? tr(lang, `${byName} removed ${name} from ${familyName}.`, `${byName} ने ${name} को ${familyName} से हटा दिया।`)
       : tr(lang, `${name} was removed from ${familyName}.`, `${name} को ${familyName} से हटा दिया गया।`),
     tr(
@@ -434,8 +436,10 @@ export function memberRemovedEmail({ familyName, memberName, byName, lang }) {
   ];
   return build({
     lang,
-    subject: tr(lang, `[${familyName}] Member removed — ${name}`, `[${familyName}] सदस्य हटाया गया — ${name}`),
-    heading: tr(lang, 'Member removed', 'सदस्य हटाया गया'),
+    subject: left
+      ? tr(lang, `[${familyName}] Member left — ${name}`, `[${familyName}] सदस्य ने परिवार छोड़ा — ${name}`)
+      : tr(lang, `[${familyName}] Member removed — ${name}`, `[${familyName}] सदस्य हटाया गया — ${name}`),
+    heading: left ? tr(lang, 'A member left', 'एक सदस्य ने परिवार छोड़ा') : tr(lang, 'Member removed', 'सदस्य हटाया गया'),
     paragraphs: t.map(escapeHtml),
     textParagraphs: t,
     ctaText: c.seeMembers,

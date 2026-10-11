@@ -79,7 +79,9 @@
     "adminUserLogoutAll": "Signed a person out everywhere",
     "adminUserDisable": "Turned off an account",
     "adminUserEnable": "Turned an account back on",
-    "documentFileRename": "Renamed a file"
+    "documentFileRename": "Renamed a file",
+    "familyDelete": "Deleted the family",
+    "memberLeave": "Left the family"
   },
   "continuations": {
     "fallback": "did something",
@@ -136,7 +138,9 @@
     "adminUserLogoutAll": "signed a person out everywhere",
     "adminUserDisable": "turned off an account",
     "adminUserEnable": "turned an account back on",
-    "documentFileRename": "renamed a file"
+    "documentFileRename": "renamed a file",
+    "familyDelete": "deleted the family",
+    "memberLeave": "left the family"
   },
   "meta": {
     "kind": {

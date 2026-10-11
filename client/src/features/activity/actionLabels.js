@@ -48,6 +48,8 @@ export const ACTION_LABELS = {
   'document.file.add': { key: 'documentFileAdd', fallback: 'Added a file', continuationFallback: 'added a file' },
   'document.file.delete': { key: 'documentFileDelete', fallback: 'Moved a file to the Bin', continuationFallback: 'moved a file to the Bin' },
   'document.file.restore': { key: 'documentFileRestore', fallback: 'Restored a file from the Bin', continuationFallback: 'restored a file from the Bin' },
+  'family.delete': { key: 'familyDelete', fallback: 'Deleted the family', continuationFallback: 'deleted the family' },
+  'member.leave': { key: 'memberLeave', fallback: 'Left the family', continuationFallback: 'left the family' },
   'document.file.rename': { key: 'documentFileRename', fallback: 'Renamed a file', continuationFallback: 'renamed a file' },
   'document.zip.link': { key: 'documentZipLink', fallback: 'Downloaded a document ZIP', continuationFallback: 'downloaded a document ZIP' },
   'folder.create': { key: 'folderCreate', fallback: 'Created a folder', continuationFallback: 'created a folder' },

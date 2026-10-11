@@ -329,6 +329,21 @@ export function AuthProvider({ children }) {
   );
 
   /**
+   * After deleting or leaving a family: forget it, open the next family (or the "create your
+   * family" screen when none is left) with a full reload, so nothing of the old family stays
+   * cached on the page.
+   */
+  const dropFamily = useCallback(
+    (familyId) => {
+      const next = memberships.filter((m) => m.familyId !== familyId);
+      storage.set(STORAGE_KEYS.memberships, next);
+      persistActiveFamilyId(next[0]?.familyId || null);
+      window.location.assign('/');
+    },
+    [memberships],
+  );
+
+  /**
    * POST /family — { familyName } -> creates a new Family + owner/admin
    * Membership for the caller, adds it to `memberships`, and makes it the
    * active family. Used by both `pages/Onboarding.jsx` (first-run, zero
@@ -481,6 +496,7 @@ export function AuthProvider({ children }) {
       acceptInvite,
       switchFamily,
       createFamily,
+      dropFamily,
       logout,
       logoutAll,
       updateUser,
@@ -499,6 +515,7 @@ export function AuthProvider({ children }) {
       acceptInvite,
       switchFamily,
       createFamily,
+      dropFamily,
       logout,
       logoutAll,
       updateUser,

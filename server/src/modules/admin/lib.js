@@ -135,7 +135,7 @@ export async function buildUserRows(users) {
   if (!users.length) return [];
   const ids = users.map((u) => u._id);
   const [memberships, admins] = await Promise.all([
-    Membership.find({ userId: { $in: ids }, status: { $ne: 'invited' } })
+    Membership.find({ userId: { $in: ids }, status: { $nin: ['invited', 'family_deleted'] } })
       .select('familyId userId role access')
       .lean(),
     PlatformAdmin.find({ email: { $in: users.map((u) => u.email) } }).select('email').lean(),
@@ -166,7 +166,7 @@ export async function buildUserRows(users) {
 
 /* ------------------------------------------------------------------- families */
 
-export const FAMILY_FIELDS = 'name createdAt createdBy storageBytes';
+export const FAMILY_FIELDS = 'name createdAt createdBy storageBytes deletedAt';
 
 const countMap = (rows, key = 'n') => new Map(rows.map((r) => [String(r._id), r[key]]));
 
@@ -230,6 +230,8 @@ export async function buildFamilyRows(families) {
       folders: folderCounts.get(key) || 0,
       storageBytes: f.storageBytes || 0,
       lastActivityAt: lastActs[idx]?.createdAt ?? null,
+      // Deleted by its owner; an app admin can restore it or remove it for good.
+      deletedAt: f.deletedAt ?? null,
     };
   });
 }

@@ -7,18 +7,25 @@ import { Family } from '../../models/Family.js';
 import { Membership } from '../../models/Membership.js';
 import { User } from '../../models/User.js';
 import { pageQuery, idParams, escapeRegex, FAMILY_FIELDS, buildFamilyRows, recentActivity } from './lib.js';
+import { logAdminAction } from './audit.js';
+import { requireSuperAdmin } from '../../services/platformRoles.js';
+import { purgeFamily, restoreFamily } from '../family/deleteFamily.js';
 
 const router = express.Router();
 
 const listQuery = z.object({
   q: z.string().trim().max(200).optional(),
+  // 'deleted' = only families their owner deleted (waiting to be restored or removed for good).
+  status: z.enum(['all', 'active', 'deleted']).default('all'),
   ...pageQuery,
 });
 
 router.get('/', validate({ query: listQuery }), async (req, res, next) => {
   try {
-    const { q, page, limit } = req.query;
+    const { q, status, page, limit } = req.query;
     const filter = q ? { name: new RegExp(escapeRegex(q), 'i') } : {};
+    if (status === 'active') filter.deletedAt = null;
+    if (status === 'deleted') filter.deletedAt = { $ne: null };
     const [total, families] = await Promise.all([
       Family.countDocuments(filter),
       Family.find(filter)
@@ -66,6 +73,33 @@ router.get('/:id', validate({ params: idParams }), async (req, res, next) => {
       })),
       recentActivity: activity,
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/** POST /admin/families/:id/restore — a deleted family comes back for all its members. */
+router.post('/:id/restore', validate({ params: idParams }), async (req, res, next) => {
+  try {
+    const family = await restoreFamily(req.params.id);
+    await logAdminAction(req, { action: 'admin.family.restore', targetType: 'family', targetId: family._id, familyId: family._id, targetTitle: family.name });
+    const [row] = await buildFamilyRows([family.toObject()]);
+    res.json(row);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * DELETE /admin/families/:id — super admin only, and only for a family its owner already deleted:
+ * erases everything in it for good (files included). Cannot be undone.
+ */
+router.delete('/:id', validate({ params: idParams }), requireSuperAdmin, async (req, res, next) => {
+  try {
+    const result = await purgeFamily(req.params.id);
+    // familyId null: the family and its own activity no longer exist.
+    await logAdminAction(req, { action: 'admin.family.purge', targetType: 'family', targetId: req.params.id, targetTitle: result.name });
+    res.status(204).send();
   } catch (err) {
     next(err);
   }

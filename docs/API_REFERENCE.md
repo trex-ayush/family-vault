@@ -12,10 +12,10 @@ Back to the [README](../README.md).
   - [Health](#health) (2)
   - [Auth](#auth) (15)
   - [Notification settings](#notification-settings) (2)
-  - [Family](#family) (4)
+  - [Family](#family) (6)
   - [Members](#members) (7)
   - [Folders](#folders) (6)
-  - [Documents](#documents) (10)
+  - [Documents](#documents) (11)
   - [Files](#files) (2)
   - [Passwords and notes](#passwords-and-notes) (6)
   - [Search](#search) (1)
@@ -25,7 +25,7 @@ Back to the [README](../README.md).
   - [Activity](#activity) (1)
   - [Stats](#stats) (1)
   - [Platform settings](#platform-settings) (5)
-  - [Admin panel](#admin-panel) (15)
+  - [Admin panel](#admin-panel) (17)
 - [Examples](#examples) — `curl` for the most common calls
 
 ## Basics
@@ -1241,6 +1241,72 @@ Always sends to the caller's own email and waits for the real result (up to 10 s
 
 </details>
 
+<details>
+<summary><code>DELETE /family</code> — Delete the family (owner only)</summary>
+
+**Who can call:** the family's owner · **Rate limit:** general limit (300 per min per IP)
+
+**Headers:** `Authorization: Bearer <accessToken>`, `X-Family-Id: <familyId>`, `Content-Type: application/json`
+
+**Path parameters:** none
+
+**Query parameters:** none
+
+**Body** (JSON, unknown fields are rejected)
+
+| Field | Type | Required | Rules / notes |
+| --- | --- | --- | --- |
+| `confirmName` | string | yes | the family's name, typed to confirm; case and extra spaces don't matter |
+
+The family disappears for every member at once (their memberships move to status `family_deleted`) and its share links stop working. Nothing is erased: an app admin can restore it (`POST /admin/families/:id/restore`) or the super admin can remove it for good (`DELETE /admin/families/:id`). Logged as `family.delete`.
+
+**Response** `204 No Content` — empty body.
+
+**Errors**
+
+| Status | Code | When |
+| --- | --- | --- |
+| 400 | `VALIDATION_ERROR` | `confirmName` missing, or an unknown field was sent |
+| 400 | `NAME_MISMATCH` | `confirmName` isn't the family's name |
+| 401 | `UNAUTHENTICATED`, `INVALID_TOKEN`, `SESSION_REVOKED` | no token, a bad or expired token, or signed out everywhere |
+| 403 | `ACCOUNT_DISABLED` | the account is disabled |
+| 400 | `MISSING_FAMILY_ID` | no `X-Family-Id` header |
+| 403 | `NOT_A_MEMBER` | not an active member of that family |
+| 403 | `OWNER_ONLY` | you are not the family's owner |
+| 429 | — (plain-text body) | over the general limit |
+
+</details>
+
+<details>
+<summary><code>POST /family/leave</code> — Leave the family</summary>
+
+**Who can call:** family member (anyone but the owner) · **Rate limit:** general limit (300 per min per IP)
+
+**Headers:** `Authorization: Bearer <accessToken>`, `X-Family-Id: <familyId>`
+
+**Path parameters:** none
+
+**Query parameters:** none
+
+**Body:** none
+
+Only your access goes; everything you added stays with the family. You stay signed in (you may be in other families). The family's admins get a "member left" email. Logged as `member.leave`.
+
+**Response** `204 No Content` — empty body.
+
+**Errors**
+
+| Status | Code | When |
+| --- | --- | --- |
+| 400 | `OWNER_CANNOT_LEAVE` | you are the owner — delete the family instead |
+| 401 | `UNAUTHENTICATED`, `INVALID_TOKEN`, `SESSION_REVOKED` | no token, a bad or expired token, or signed out everywhere |
+| 403 | `ACCOUNT_DISABLED` | the account is disabled |
+| 400 | `MISSING_FAMILY_ID` | no `X-Family-Id` header |
+| 403 | `NOT_A_MEMBER` | not an active member of that family |
+| 429 | — (plain-text body) | over the general limit |
+
+</details>
+
 ---
 
 ## Members
@@ -2330,6 +2396,48 @@ New files are added after the existing ones.
 | 403 | `FORBIDDEN` | read-only member (write access needed) |
 | 404 | `DOCUMENT_NOT_FOUND` | no such document in this family, or it is in the Bin |
 | 413 | `FILE_TOO_LARGE` | a file is bigger than the size limit |
+| 429 | — (plain-text body) | over the general limit |
+
+</details>
+
+<details>
+<summary><code>PATCH /documents/:id/files/:fileId</code> — Rename one file</summary>
+
+**Who can call:** write access · **Rate limit:** general limit (300 per min per IP)
+
+**Headers:** `Authorization: Bearer <accessToken>`, `X-Family-Id: <familyId>`, `Content-Type: application/json`
+
+**Path parameters**
+
+| Name | Type | Rules / notes |
+| --- | --- | --- |
+| `id` | string | 24-character document id |
+| `fileId` | string | 24-character file id |
+
+**Query parameters:** none
+
+**Body** (JSON, unknown fields are rejected)
+
+| Field | Type | Required | Rules / notes |
+| --- | --- | --- | --- |
+| `label` | string | yes | the file's new name, trimmed, up to 200 characters; `""` = back to the name it was uploaded with |
+
+The new name is what the app shows and what a download (and a document ZIP) is saved as, keeping the original extension: `"Papa Aadhaar"` on `IMG_2041.jpg` downloads as `Papa Aadhaar.jpg`. Hindi names work. Logged as `document.file.rename` with the old and new name.
+
+**Response** `200 OK` — the updated document (same shape as the `POST /documents` response; the file's `label` is the new name, `originalName` is unchanged).
+
+**Errors**
+
+| Status | Code | When |
+| --- | --- | --- |
+| 400 | `VALIDATION_ERROR` | bad `id` or `fileId`, `label` missing or longer than 200 characters, or an unknown field |
+| 401 | `UNAUTHENTICATED`, `INVALID_TOKEN`, `SESSION_REVOKED` | no token, a bad or expired token, or signed out everywhere |
+| 403 | `ACCOUNT_DISABLED` | the account is disabled |
+| 400 | `MISSING_FAMILY_ID` | no `X-Family-Id` header |
+| 403 | `NOT_A_MEMBER` | not an active member of that family |
+| 403 | `FORBIDDEN` | read-only member (write access needed) |
+| 404 | `DOCUMENT_NOT_FOUND` | no such document in this family, or it is in the Bin |
+| 404 | `FILE_NOT_FOUND` | no such file on this document, or it is in the Bin |
 | 429 | — (plain-text body) | over the general limit |
 
 </details>
@@ -4507,6 +4615,7 @@ Ends every session of the account, including access tokens already in use. Allow
 | Name | Type | Required | Rules / notes |
 | --- | --- | --- | --- |
 | `q` | string | no | Trimmed, up to 200 characters. Matches part of the family name, any case. |
+| `status` | enum | no | `all` (default), `active`, or `deleted` (families their owner deleted, waiting to be restored or removed for good) |
 | `page` | number | no | Whole number, 1 or more. Default `1`. |
 | `limit` | number | no | Whole number, 1 or more. Default `20`; above 100 is cut to 100. |
 
@@ -4629,6 +4738,76 @@ Newest family first.
 | 401 | `SESSION_REVOKED` | the account was signed out everywhere after this token was issued |
 | 403 | `ACCOUNT_DISABLED` | the account is disabled |
 | 403 | `NOT_PLATFORM_ADMIN` | you are not the super admin or an admin |
+| 404 | `NOT_FOUND` | no such family |
+| 429 | — | too many requests (plain-text body) |
+
+</details>
+
+<details>
+<summary><code>POST /admin/families/:id/restore</code> — Bring back a family its owner deleted</summary>
+
+**Who can call:** platform admin · **Rate limit:** general API limit (300 per minute)
+
+**Headers:** `Authorization: Bearer <accessToken>`
+
+**Path parameters**
+
+| Name | Type | Required | Rules / notes |
+| --- | --- | --- | --- |
+| `id` | id | yes | 24-character family id |
+
+**Query parameters:** none
+
+**Body:** none
+
+Every member is back exactly as before (same role, access and status), and the family's share links work again until they expire. Logs `admin.family.restore`.
+
+**Response** `200 OK` — the family row (same shape as in `GET /admin/families`, with `deletedAt: null`).
+
+**Errors**
+
+| Status | Code | When |
+| --- | --- | --- |
+| 400 | `VALIDATION_ERROR` | `id` is not a 24-character id |
+| 400 | `FAMILY_NOT_DELETED` | the family isn't deleted |
+| 401 | `UNAUTHENTICATED`, `INVALID_TOKEN`, `SESSION_REVOKED` | no token, a bad or expired token, or signed out everywhere |
+| 403 | `ACCOUNT_DISABLED` | the account is disabled |
+| 403 | `NOT_PLATFORM_ADMIN` | you are not the super admin or an admin |
+| 404 | `NOT_FOUND` | no such family |
+| 429 | — | too many requests (plain-text body) |
+
+</details>
+
+<details>
+<summary><code>DELETE /admin/families/:id</code> — Remove a deleted family for good</summary>
+
+**Who can call:** super admin · **Rate limit:** general API limit (300 per minute)
+
+**Headers:** `Authorization: Bearer <accessToken>`
+
+**Path parameters**
+
+| Name | Type | Required | Rules / notes |
+| --- | --- | --- | --- |
+| `id` | id | yes | 24-character family id |
+
+**Query parameters:** none
+
+**Body:** none
+
+**Cannot be undone.** Only for a family its owner already deleted. Erases every file's bytes in storage, its documents, folders, passwords and notes (including its Bin), share links, memberships, pending invite links and activity, then the family itself. Logs `admin.family.purge` (with no family, since it no longer exists).
+
+**Response** `204 No Content` — empty body.
+
+**Errors**
+
+| Status | Code | When |
+| --- | --- | --- |
+| 400 | `VALIDATION_ERROR` | `id` is not a 24-character id |
+| 400 | `FAMILY_NOT_DELETED` | the family isn't deleted — its owner has to delete it first |
+| 401 | `UNAUTHENTICATED`, `INVALID_TOKEN`, `SESSION_REVOKED` | no token, a bad or expired token, or signed out everywhere |
+| 403 | `ACCOUNT_DISABLED` | the account is disabled |
+| 403 | `SUPER_ADMIN_ONLY` | you are not the super admin |
 | 404 | `NOT_FOUND` | no such family |
 | 429 | — | too many requests (plain-text body) |
 

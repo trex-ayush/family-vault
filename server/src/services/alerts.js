@@ -53,6 +53,8 @@ async function route(activity, ctx = {}) {
       return alertMemberAdded(activity);
     case 'member.delete':
       return alertMemberRemoved(activity);
+    case 'member.leave':
+      return alertMemberRemoved(activity, { left: true });
     case 'member.update':
       return alertMemberUpdate(activity);
     case 'member.access_change':
@@ -170,12 +172,12 @@ async function alertMemberAdded(activity) {
   );
 }
 
-async function alertMemberRemoved(activity) {
+async function alertMemberRemoved(activity, { left = false } = {}) {
   const recipients = await getInstantRecipients(activity.familyId, 'member_removed');
   if (!recipients.length) return;
   const familyName = await getFamilyName(activity.familyId);
   await notifyAdmins(recipients, (lang) =>
-    templates.memberRemovedEmail({ familyName, memberName: activity.meta?.name, byName: actorOf(activity), lang }),
+    templates.memberRemovedEmail({ familyName, memberName: activity.meta?.name, byName: actorOf(activity), left, lang }),
   );
 }
 

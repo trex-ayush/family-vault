@@ -16,6 +16,11 @@ const familySchema = new mongoose.Schema(
       defaultShareDuration: { type: String, enum: SHARE_DURATIONS, default: '12h' },
     },
     storageBytes: { type: Number, default: 0 },
+    // Deleted by its owner: hidden from every member at once (their memberships are set to
+    // 'family_deleted'), but nothing is erased until an app admin removes it for good in the
+    // admin panel — or restores it. See modules/family/deleteFamily.js.
+    deletedAt: { type: Date, default: null },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   },
   { timestamps: true },
 );

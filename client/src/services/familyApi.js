@@ -26,6 +26,12 @@ export const familyApi = {
    */
   update: (payload) => apiClient.patch('/family', payload).then((res) => res.data),
 
+  /** DELETE /family (owner) — { confirmName }: the family's name, typed to confirm. */
+  remove: (confirmName) => apiClient.delete('/family', { data: { confirmName } }).then((res) => res.data),
+
+  /** POST /family/leave — any member except the owner leaves the active family. */
+  leave: () => apiClient.post('/family/leave').then((res) => res.data),
+
   /**
    * POST /family/test-email -> { queued: true, emailEnabled }. Admin only.
    * Sends a test email to the caller (never an arbitrary address) — lets an

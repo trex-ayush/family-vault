@@ -43,6 +43,12 @@ export const adminApi = {
   /** GET /admin/families/:id -> { family: FamilyRow, members: [...], recentActivity: [ActivityRow] } */
   getFamily: (id) => apiClient.get(`/admin/families/${id}`).then((res) => res.data),
 
+  /** POST /admin/families/:id/restore -> FamilyRow. Brings a family its owner deleted back for all its members. */
+  restoreFamily: (id) => apiClient.post(`/admin/families/${id}/restore`).then((res) => res.data),
+
+  /** DELETE /admin/families/:id (super admin) — erases a deleted family for good. */
+  purgeFamily: (id) => apiClient.delete(`/admin/families/${id}`).then((res) => res.data),
+
   /** GET /admin/admins -> { superAdmin: { email, name? }, admins: [{ id, email, name?, addedBy, addedAt }] } */
   listAdmins: () => apiClient.get('/admin/admins').then((res) => res.data),
 

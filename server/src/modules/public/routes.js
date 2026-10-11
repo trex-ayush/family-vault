@@ -21,6 +21,10 @@ const router = express.Router();
 async function resolveShare(token) {
   const share = await Share.findOne({ tokenHash: sha256Hex(token) });
   if (!share) throw new ApiError(404, 'NOT_FOUND', 'Share not found');
+  // A deleted family's links stop working at once (they come back if it is restored).
+  if (await Family.exists({ _id: share.familyId, deletedAt: { $ne: null } })) {
+    throw new ApiError(404, 'NOT_FOUND', 'Share not found');
+  }
 
   if (share.revokedAt) throw new ApiError(410, 'REVOKED', 'This share has been revoked');
   if (!share.expiresAt || share.expiresAt.getTime() <= Date.now()) {

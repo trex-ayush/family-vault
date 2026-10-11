@@ -64,7 +64,7 @@ router.get('/overview', async (req, res, next) => {
       User.countDocuments({ lastLoginAt: { $gte: d30 } }),
       User.countDocuments({ disabled: true }),
       Family.countDocuments({}),
-      Membership.countDocuments({ status: { $ne: 'invited' } }),
+      Membership.countDocuments({ status: { $nin: ['invited', 'family_deleted'] } }),
       Membership.countDocuments({ status: 'invited' }),
       Document.countDocuments({}),
       Document.aggregate([

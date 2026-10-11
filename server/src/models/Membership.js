@@ -28,7 +28,11 @@ const membershipSchema = new mongoose.Schema(
     access: { type: String, enum: ['read', 'write'], default: 'write' },
     canLogin: { type: Boolean, default: true },
     isOwner: { type: Boolean, default: false },
-    status: { type: String, enum: ['active', 'disabled', 'invited'], default: 'active' },
+    // 'family_deleted': the family's owner deleted it. Every query for a member's families asks for
+    // status 'active' (or 'invited'), so the family simply disappears for everyone; restoring it puts
+    // each membership back to `statusBeforeFamilyDelete`.
+    status: { type: String, enum: ['active', 'disabled', 'invited', 'family_deleted'], default: 'active' },
+    statusBeforeFamilyDelete: { type: String, enum: ['active', 'disabled', 'invited', null], default: null },
     // Email module: per-admin INSTANT alert preferences (member added, share created, etc. — see
     // server/src/services/alerts.js). Meaningless for non-admin memberships (only admins receive
     // alert emails), but kept on every membership rather than a separate collection since it's

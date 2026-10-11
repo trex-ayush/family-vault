@@ -307,7 +307,7 @@ errors — are in **[docs/API_REFERENCE.md](docs/API_REFERENCE.md)**.
 - **Errors** always look like `{ "message": "…", "code": "SOME_CODE" }`, with a matching HTTP status.
 - **Uploads** use `multipart/form-data`; everything else is JSON.
 
-**All 86 endpoints at a glance** — click an area for its details.
+**All 91 endpoints at a glance** — click an area for its details.
 
 #### [Health](docs/API_REFERENCE.md#health)
 
@@ -351,6 +351,8 @@ errors — are in **[docs/API_REFERENCE.md](docs/API_REFERENCE.md)**.
 | `GET` | `/family` | Get the selected family's details |
 | `PATCH` | `/family` | Rename the family or change the default share-link length |
 | `POST` | `/family/test-email` | Send yourself a test email |
+| `DELETE` | `/family` | Delete the family (owner only, type its name to confirm) |
+| `POST` | `/family/leave` | Leave the family (anyone but the owner) |
 
 #### [Members](docs/API_REFERENCE.md#members)
 
@@ -385,6 +387,7 @@ errors — are in **[docs/API_REFERENCE.md](docs/API_REFERENCE.md)**.
 | `PATCH` | `/documents/:id` | Change a document's title or notes, or move it |
 | `DELETE` | `/documents/:id` | Move a document to the Bin |
 | `POST` | `/documents/:id/files` | Add more files to a document |
+| `PATCH` | `/documents/:id/files/:fileId` | Rename one file |
 | `DELETE` | `/documents/:id/files/:fileId` | Move one file to the Bin |
 | `PATCH` | `/documents/:id/files/:fileId/text` | Save the text read from one file |
 | `POST` | `/documents/:id/zip-link` | Get a link to download a document's files as a ZIP |
@@ -470,8 +473,10 @@ errors — are in **[docs/API_REFERENCE.md](docs/API_REFERENCE.md)**.
 | `GET` | `/admin/users/:id` | Get one account |
 | `PATCH` | `/admin/users/:id` | Disable or enable an account |
 | `POST` | `/admin/users/:id/logout-all` | Sign an account out everywhere |
-| `GET` | `/admin/families` | List families |
+| `GET` | `/admin/families` | List families (all, active or deleted) |
 | `GET` | `/admin/families/:id` | Get one family with its members |
+| `POST` | `/admin/families/:id/restore` | Bring back a family its owner deleted |
+| `DELETE` | `/admin/families/:id` | Remove a deleted family for good (super admin) |
 | `GET` | `/admin/activity` | List activity across every family |
 | `GET` | `/admin/shares` | List share links across families |
 | `POST` | `/admin/shares/:id/revoke` | Turn off any share link |

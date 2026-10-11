@@ -79,7 +79,9 @@
     "adminUserLogoutAll": "किसी को हर जगह से साइन आउट करना",
     "adminUserDisable": "अकाउंट बंद करना",
     "adminUserEnable": "अकाउंट फिर चालू करना",
-    "documentFileRename": "फ़ाइल का नाम बदलना"
+    "documentFileRename": "फ़ाइल का नाम बदलना",
+    "familyDelete": "परिवार मिटाना",
+    "memberLeave": "परिवार छोड़ना"
   },
   "continuations": {
     "fallback": "ने कुछ किया",
@@ -136,7 +138,9 @@
     "adminUserLogoutAll": "ने किसी को हर जगह से साइन आउट किया",
     "adminUserDisable": "ने अकाउंट बंद किया",
     "adminUserEnable": "ने अकाउंट फिर चालू किया",
-    "documentFileRename": "ने एक फ़ाइल का नाम बदला"
+    "documentFileRename": "ने एक फ़ाइल का नाम बदला",
+    "familyDelete": "ने परिवार मिटाया",
+    "memberLeave": "ने परिवार छोड़ दिया"
   },
   "meta": {
     "kind": {

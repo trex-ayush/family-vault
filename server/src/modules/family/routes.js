@@ -1,4 +1,5 @@
 import express from 'express';
+import { z } from 'zod';
 
 import { requireAuth, requireAdmin, requireFamily } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
@@ -12,6 +13,7 @@ import { serializeFamily, serializeMembership } from '../auth/serializers.js';
 import { createFamilySchema, patchFamilySchema } from './schemas.js';
 import { sendMailNow, isEmailEnabled } from '../../services/mailer.js';
 import { testEmail } from '../../services/emailTemplates.js';
+import { sameFamilyName, softDeleteFamily } from './deleteFamily.js';
 
 const router = express.Router();
 
@@ -148,6 +150,50 @@ router.post('/test-email', requireFamily, requireAdmin, async (req, res, next) =
     const body = { ok: result.ok, queued: result.ok, emailEnabled: result.error !== 'EMAIL_DISABLED', to: user.email };
     if (!result.ok) Object.assign(body, { error: result.error, code: result.code, hint: result.hint });
     res.status(200).json(body);
+  } catch (err) {
+    next(err);
+  }
+});
+
+const deleteFamilySchema = z.object({ confirmName: z.string().max(300) }).strict();
+
+/**
+ * DELETE /family — the owner only, `{ confirmName }` (the family's name, any case/spacing). The
+ * family disappears for every member at once; nothing is erased — an app admin can restore it or
+ * remove it for good in the admin panel (modules/admin/families.js).
+ */
+router.delete('/', requireFamily, validate({ body: deleteFamilySchema }), async (req, res, next) => {
+  try {
+    if (!req.auth.isOwner) throw new ApiError(403, 'OWNER_ONLY', 'Only the family owner can delete the family');
+    const family = await Family.findById(req.auth.familyId).select('name').lean();
+    if (!family) throw new ApiError(404, 'NOT_FOUND', 'Family not found');
+    if (!sameFamilyName(req.body.confirmName, family.name)) {
+      throw new ApiError(400, 'NAME_MISMATCH', 'Type the family name exactly to delete it');
+    }
+    // Logged first, while the family is still active, so it shows in its activity.
+    await logActivity(req, { action: 'family.delete', targetType: 'family', targetId: req.auth.familyId, meta: { name: family.name } });
+    await softDeleteFamily(req.auth.familyId, req.auth.userId);
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * POST /family/leave — any member except the owner leaves the family. Only their access goes;
+ * everything they added stays. Unlike an admin removing them, they stay signed in (they may be in
+ * other families).
+ */
+router.post('/leave', requireFamily, async (req, res, next) => {
+  try {
+    if (req.auth.isOwner) {
+      throw new ApiError(400, 'OWNER_CANNOT_LEAVE', 'The owner cannot leave the family — delete it instead');
+    }
+    const membership = await Membership.findById(req.auth.membershipId);
+    if (!membership) throw new ApiError(404, 'NOT_FOUND', 'Member not found');
+    await logActivity(req, { action: 'member.leave', targetType: 'membership', targetId: membership._id, meta: { name: membership.name } });
+    await membership.deleteOne();
+    res.status(204).send();
   } catch (err) {
     next(err);
   }

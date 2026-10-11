@@ -69,5 +69,26 @@
     "emailOff": "Get an email when this happens",
     "testEmail": "Send one email to check it works",
     "shareDurationInfo": "How long a new link keeps working"
+  },
+  "danger": {
+    "deleteTitle": "Delete this family",
+    "deleteDescription": "Removes the family for every member. Only you, the owner, can do this.",
+    "deleteButton": "Delete family",
+    "deleteConfirmTitle": "Delete “{{name}}”?",
+    "deleteWarningTitle": "This removes the whole family:",
+    "deleteWarning1": "Every member loses access straight away.",
+    "deleteWarning2": "All its documents, files, passwords and notes go with it.",
+    "deleteWarning3": "Its share links stop working.",
+    "deleteWarningUndo": "If you change your mind, ask the app admin quickly — they can bring it back.",
+    "typeName": "To confirm, type the family name: {{name}}",
+    "deleted": "“{{name}}” was deleted",
+    "deleteFailed": "Could not delete the family",
+    "leaveTitle": "Leave this family",
+    "leaveDescription": "You stop seeing “{{name}}”. Everything you added stays with the family.",
+    "leaveButton": "Leave family",
+    "leaveConfirmTitle": "Leave “{{name}}”?",
+    "leaveConfirmDescription": "You won’t see its documents any more. To come back, an admin has to invite you again.",
+    "left": "You left “{{name}}”",
+    "leaveFailed": "Could not leave the family"
   }
 }

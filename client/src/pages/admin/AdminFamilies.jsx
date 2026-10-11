@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, House } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { ChevronRight, House, RotateCcw, Trash2 } from 'lucide-react';
+import Button from '@/components/ui/Button.jsx';
+import ConfirmDrawer from '@/components/ui/ConfirmDrawer.jsx';
+import { usePlatformOwner } from '@/hooks/usePlatformOwner.js';
 import Badge from '@/components/ui/Badge.jsx';
 import Drawer from '@/components/ui/Drawer.jsx';
 import EmptyState from '@/components/ui/EmptyState.jsx';
@@ -57,6 +61,78 @@ function MemberBadges({ m }) {
   );
 }
 
+/** "Deleted" next to a family's name. */
+function DeletedBadge({ family }) {
+  const { t } = useTranslation('admin');
+  if (!family?.deletedAt) return null;
+  return <Badge tone="red">{t('families.deletedBadge', 'Deleted')}</Badge>;
+}
+
+/**
+ * A family its owner deleted: a note saying so, Restore (any app admin) and Delete forever (super
+ * admin only — erases everything, like emptying the Bin).
+ */
+function DeletedFamilyActions({ family, onPurged }) {
+  const { t } = useTranslation('admin');
+  const queryClient = useQueryClient();
+  const { platformRole } = usePlatformOwner();
+  const [busy, setBusy] = useState(false);
+  const [confirmPurge, setConfirmPurge] = useState(false);
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ['admin'] });
+
+  const restore = async () => {
+    setBusy(true);
+    try {
+      await adminApi.restoreFamily(family.id);
+      toast.success(t('families.deleted.restored', '“{{name}}” is back for its members', { name: family.name }));
+      refresh();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || t('families.deleted.failed', 'Something went wrong. Please try again.'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const purge = async () => {
+    try {
+      await adminApi.purgeFamily(family.id);
+      toast.success(t('families.deleted.purged', '“{{name}}” was deleted forever', { name: family.name }));
+      refresh();
+      onPurged();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || t('families.deleted.failed', 'Something went wrong. Please try again.'));
+    }
+  };
+
+  return (
+    <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-200">
+      <p>
+        {t('families.deleted.notice', 'Its owner deleted this family on {{date}}. Members can’t see it until you restore it.', {
+          date: formatDate(family.deletedAt),
+        })}
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button size="sm" variant="secondary" leftIcon={<RotateCcw className="h-4 w-4" aria-hidden="true" />} onClick={restore} loading={busy}>
+          {t('families.deleted.restore', 'Restore family')}
+        </Button>
+        {platformRole === 'super' && (
+          <Button size="sm" variant="danger" leftIcon={<Trash2 className="h-4 w-4" aria-hidden="true" />} onClick={() => setConfirmPurge(true)} disabled={busy}>
+            {t('families.deleted.purge', 'Delete forever')}
+          </Button>
+        )}
+      </div>
+      <ConfirmDrawer
+        isOpen={confirmPurge}
+        onClose={() => setConfirmPurge(false)}
+        onConfirm={purge}
+        title={t('families.deleted.purgeTitle', 'Delete “{{name}}” forever?', { name: family.name })}
+        description={t('families.deleted.purgeDescription', 'Every document, file, password and note in this family is erased for good, along with its members and activity. This can’t be undone.')}
+        confirmLabel={t('families.deleted.purge', 'Delete forever')}
+      />
+    </div>
+  );
+}
+
 function FamilyDrawer({ familyId, onClose }) {
   const { t } = useTranslation('admin');
   const { data, isLoading, error, refetch } = useQuery({
@@ -90,6 +166,7 @@ function FamilyDrawer({ familyId, onClose }) {
         <ErrorBlock error={error} onRetry={refetch} />
       ) : family ? (
         <div>
+          {family.deletedAt && <DeletedFamilyActions family={family} onPurged={onClose} />}
           <dl className="divide-y divide-neutral-100 dark:divide-neutral-700">
             <DetailRow label={t('families.detail.owner', 'Owner')}>
               {family.owner ? (
@@ -147,11 +224,12 @@ export default function AdminFamilies() {
   const [searchParams, setSearchParams] = useSearchParams();
   const openId = searchParams.get('open');
   const [q, setQ] = useState('');
+  const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(LIMIT);
   const debouncedQ = useDebouncedValue(q.trim(), 300);
 
-  useEffect(() => setPage(1), [debouncedQ, limit]);
+  useEffect(() => setPage(1), [debouncedQ, status, limit]);
 
   const setOpenId = (id) => {
     const next = new URLSearchParams(searchParams);
@@ -161,8 +239,8 @@ export default function AdminFamilies() {
   };
 
   const { data, isLoading, isFetching, error, refetch } = useQuery({
-    queryKey: ['admin', 'families', { q: debouncedQ, page, limit }],
-    queryFn: () => adminApi.listFamilies({ q: debouncedQ, page, limit }),
+    queryKey: ['admin', 'families', { q: debouncedQ, status, page, limit }],
+    queryFn: () => adminApi.listFamilies({ q: debouncedQ, status, page, limit }),
     placeholderData: keepPreviousData,
   });
   const items = data?.items || [];
@@ -180,7 +258,10 @@ export default function AdminFamilies() {
       label: t('families.columns.name', 'Family'),
       render: (f) => (
         <div className="min-w-0">
-          <p className="truncate font-medium">{f.name}</p>
+          <p className="flex min-w-0 items-center gap-1.5">
+            <span className="truncate font-medium">{f.name}</span>
+            <DeletedBadge family={f} />
+          </p>
           {f.owner && <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">{f.owner.email || f.owner.name}</p>}
         </div>
       ),
@@ -202,6 +283,21 @@ export default function AdminFamilies() {
         search={q}
         onSearchChange={setQ}
         searchPlaceholder={t('families.searchPlaceholder', 'Search by family name')}
+        values={{ status }}
+        onChange={(next) => setStatus(next.status || 'all')}
+        filters={[
+          {
+            key: 'status',
+            label: t('families.statusLabel', 'Show'),
+            type: 'segment',
+            empty: 'all',
+            options: [
+              { value: 'all', label: t('families.status.all', 'All') },
+              { value: 'active', label: t('families.status.active', 'Active') },
+              { value: 'deleted', label: t('families.status.deleted', 'Deleted') },
+            ],
+          },
+        ]}
       />
 
       {isLoading ? (
@@ -221,7 +317,12 @@ export default function AdminFamilies() {
                 onClick={() => setOpenId(f.id)}
                 tip={t('tip.openFamily', 'See this family')}
                 icon={<ListIcon icon={House} kind="folder" />}
-                title={f.name}
+                title={
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <span className="truncate">{f.name}</span>
+                    <DeletedBadge family={f} />
+                  </span>
+                }
                 meta={summary(f)}
                 snippet={f.owner ? f.owner.name || f.owner.email : null}
                 actions={<ChevronRight className="h-4 w-4 text-neutral-400" aria-hidden="true" />}
