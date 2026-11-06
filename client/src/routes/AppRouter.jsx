@@ -46,8 +46,13 @@ function PageFallback() {
   return <PageSkeleton />;
 }
 
+// Each page gets its own boundary (the key): the router switches pages in a React transition, and
+// a boundary shared between pages would keep the old page on screen, with no sign of the click,
+// until the new page's code arrives.
+let boundary = 0;
 function withSuspense(element) {
-  return <Suspense fallback={<PageFallback />}>{element}</Suspense>;
+  boundary += 1;
+  return <Suspense key={boundary} fallback={<PageFallback />}>{element}</Suspense>;
 }
 
 // A crashed page shows RouteErrorPage (not React Router's developer screen). Inside the app the

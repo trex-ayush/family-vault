@@ -164,7 +164,7 @@ function Drawer({
         <div className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden ${bodyClassName}`}>{children}</div>
 
         {footer ? (
-          <footer className="flex-shrink-0 flex items-center gap-2 border-t border-neutral-200 px-4 pt-3 pb-[calc(0.75rem+var(--safe-bottom))] sm:px-5 dark:border-neutral-700 *:flex-1">
+          <footer className="flex-shrink-0 flex items-center gap-2 border-t border-neutral-200 px-4 pt-3 pb-[calc(0.75rem+var(--safe-bottom))] sm:px-5 dark:border-neutral-700 *:flex-1 [&>span>button]:w-full [&>span>a]:w-full">
             {footer}
           </footer>
         ) : null}

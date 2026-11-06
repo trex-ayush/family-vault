@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { env } from '@/config/env.js';
 import ThemeContext from '@/context/ThemeContext.jsx';
+import { Skeleton } from '@/components/ui/Skeleton.jsx';
 
 /**
  * GoogleSignInButton — Google's own "Continue with Google" button from Google Identity Services
@@ -19,8 +20,8 @@ import ThemeContext from '@/context/ThemeContext.jsx';
  *  - `size: large` (40px — our button height from `lg`), `shape: rectangular`, logo on the left;
  *  - width tracks the container (GIS takes pixels only, 200–400px), centred in a row as tall as
  *    our buttons, so the page doesn't jump.
- * While Google's script loads, a look-alike placeholder (inline multicolour "G", same size and
- * wording, not clickable) holds the space; it disappears once Google's button has drawn.
+ * While Google's script loads, a plain skeleton block holds the space, until Google's button has
+ * really drawn. What's inside that button is Google's: it may then say "Continue as <name>".
  *
  * - Loads `https://accounts.google.com/gsi/client` lazily, once, only when this mounts.
  * - Renders **nothing** when `VITE_GOOGLE_CLIENT_ID` is unset, or when Google's script can't load
@@ -58,18 +59,6 @@ function loadGoogleIdentityScript() {
     document.head.appendChild(script);
   });
   return gisScriptPromise;
-}
-
-/** Google's multicolour "G" (official brand colours), for the loading placeholder. */
-function GoogleGLogo({ className = 'h-[18px] w-[18px]' }) {
-  return (
-    <svg viewBox="0 0 48 48" className={className} aria-hidden="true" focusable="false">
-      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-    </svg>
-  );
 }
 
 /** Pixel width GIS accepts (200–400), from the row's measured width. */
@@ -136,15 +125,21 @@ export default function GoogleSignInButton({ onCredential, enableOneTap = false,
       width,
       locale,
     });
-    // Keep the placeholder up until Google's iframe has actually painted.
-    const iframe = el.querySelector('iframe');
-    const done = () => setDrawn(true);
-    const fallback = setTimeout(done, 2500);
-    iframe?.addEventListener('load', done, { once: true });
-    if (!iframe) done();
+    // Keep the placeholder up until Google's button really has a size: its iframe arrives empty
+    // and 0px wide first, so showing it any sooner blinks.
+    setDrawn(false);
+    const started = Date.now();
+    let settle = null;
+    const watch = setInterval(() => {
+      const hasSize = el.querySelector('iframe')?.getBoundingClientRect().width > 0;
+      if (hasSize || Date.now() - started > 3000) {
+        clearInterval(watch);
+        settle = setTimeout(() => setDrawn(true), hasSize ? 150 : 0);
+      }
+    }, 50);
     return () => {
-      clearTimeout(fallback);
-      iframe?.removeEventListener('load', done);
+      clearInterval(watch);
+      clearTimeout(settle);
     };
   }, [status, width, isDark, text, locale]);
 
@@ -155,20 +150,13 @@ export default function GoogleSignInButton({ onCredential, enableOneTap = false,
   return (
     <div ref={rowRef} className="relative flex min-h-11 w-full items-center justify-center lg:min-h-10">
       {!drawn && (
-        // Same size, colours and wording as Google's button, so nothing jumps when it swaps in.
-        <div
-          role="status"
-          aria-label={label}
-          style={{ width: width || '100%', maxWidth: 400 }}
-          className={`pointer-events-none absolute inset-y-0 my-auto flex h-10 items-center justify-center gap-2.5 rounded-[4px] border px-3 text-sm font-medium ${
-            isDark ? 'border-[#202124] bg-[#202124] text-white' : 'border-[#dadce0] bg-white text-[#3c4043]'
-          }`}
-        >
-          <GoogleGLogo />
-          <span>{label}</span>
+        // A plain block the same size: a copy of Google's button would visibly change when the
+        // real one, with its own look, replaces it.
+        <div role="status" aria-label={label} style={{ width: width || '100%', maxWidth: 400 }} className="absolute inset-y-0 my-auto h-10">
+          <Skeleton className="h-10 w-full" />
         </div>
       )}
-      <div ref={containerRef} className={`flex h-10 justify-center transition-opacity ${drawn ? 'opacity-100' : 'opacity-0'}`} style={{ colorScheme: 'normal' }} />
+      <div ref={containerRef} className={`flex h-10 justify-center transition-opacity duration-200 ${drawn ? 'opacity-100' : 'opacity-0'}`} style={{ colorScheme: 'normal' }} />
     </div>
   );
 }

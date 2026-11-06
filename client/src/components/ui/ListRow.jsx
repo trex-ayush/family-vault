@@ -23,6 +23,9 @@ const LIST_COLUMNS = [
   'xl:[&>*:nth-child(odd)]:border-r',
   'xl:[&>*:last-child:nth-child(odd)]:col-span-2 xl:[&>*:last-child:nth-child(odd)]:border-r-0',
   'xl:[&>*:last-child]:border-b-0 xl:[&>*:nth-last-child(2):nth-child(odd)]:border-b-0',
+  // Round only the card's real corners: a rounded row bends the line between the columns.
+  'xl:[&>*:first-child:not(:last-child)]:rounded-tr-none xl:[&>*:nth-child(2)]:rounded-tr-xl',
+  'xl:[&>*:last-child:nth-child(even)]:rounded-bl-none xl:[&>*:nth-last-child(2):nth-child(odd)]:rounded-bl-xl',
 ].join(' ');
 
 /**
