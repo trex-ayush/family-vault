@@ -22,11 +22,14 @@ English and Hindi. Where an older section below disagrees with this one, this on
   folder names, titles, notes, usernames and field keys/values — never the password. The navbar box is
   centred on PC with live grouped results (Ctrl+K focuses it); inside a folder the search covers that
   folder and its subfolders. No filters.
-- **Sharing**: one Share button on every folder, document and single file. A link lasts 12 hours,
+- **Sharing**: one Share button on every folder, document, single file and saved password. A link lasts 12 hours,
   1 day or 7 days; the family default (Settings > Family) starts at 12 hours. Links are public (no
-  login, no password, no label) and the public page shows **only titles and files** — never notes,
-  passwords or note items, so there is no "include sensitive" option to get wrong. The Shares page
-  lists links and revokes them.
+  login, no password, no label). Document and folder links show **only titles and files** — never
+  notes, passwords or note items, so there is no "include sensitive" option to get wrong. A saved
+  password can be shared on its own (owner's decision, 2026-11-07): that password's title, username
+  and password only, with a warning before and on the page, starting at the shortest time; notes
+  can't be shared. An existing working link is shown again rather than making another. The Shares
+  page lists links, revokes them and turns them back on.
 - **Members** are added with name and email and get **write** access by default. Removing a member
   removes only their access; everything they added stays.
 - **Security**: file bytes, notes, usernames, passwords and field values are encrypted at rest. Showing

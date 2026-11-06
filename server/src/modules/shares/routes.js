@@ -28,7 +28,7 @@ const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid id');
 const durationEnum = z.enum(SHARE_DURATIONS);
 
 const createShareSchema = z.object({
-  targetType: z.enum(['document', 'folder']),
+  targetType: z.enum(['document', 'folder', 'item']),
   targetId: objectId,
   // Document shares only: expose just these files (e.g. "share this one photo").
   fileIds: z.array(objectId).max(200).optional(),

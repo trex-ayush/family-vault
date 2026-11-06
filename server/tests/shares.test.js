@@ -164,13 +164,70 @@ describe('shares module', () => {
       expect(res.body.code).toBe('VALIDATION_ERROR');
     });
 
-    it('no longer shares single vault items', async () => {
-      const { family, accessToken } = await createFamilyWithMember();
-      const res = await post(accessToken, family).send({
-        targetType: 'item',
-        targetId: new mongoose.Types.ObjectId().toString(),
+    describe('a saved password', () => {
+      async function addItem(s, folder, body) {
+        const res = await request(app)
+          .post('/api/items')
+          .set('Authorization', `Bearer ${s.accessToken}`).set('X-Family-Id', s.family.id)
+          .send({ folderId: folder.id, ...body });
+        expect(res.status).toBe(201);
+        return res.body.item || res.body;
+      }
+      const LOGIN = { kind: 'login', title: 'Net banking', username: 'ravi.k', password: 'S3cret-Pass!', notes: 'branch note', fields: [{ key: 'ATM PIN', value: '9911' }] };
+
+      it('shows only its title, username and password, and is never cached', async () => {
+        const s = await createFamilyWithMember();
+        const folder = await createFolder(s.family, s.membership);
+        const item = await addItem(s, folder, LOGIN);
+
+        const created = await post(s.accessToken, s.family).send({ targetType: 'item', targetId: item.id, duration: '12h' });
+        expect(created.status).toBe(201);
+        expect(created.body.targetLabel).toBe('Net banking');
+
+        const token = created.body.url.split('/s/')[1];
+        const opened = await request(app).get(`/api/public/shares/${token}`).expect(200);
+        expect(opened.body.password).toEqual({ title: 'Net banking', username: 'ravi.k', password: 'S3cret-Pass!' });
+        expect(opened.headers['cache-control']).toBe('no-store');
+        expect(JSON.stringify(opened.body)).not.toContain('branch note');
+        expect(JSON.stringify(opened.body)).not.toContain('9911');
+
+        await request(app).post(`/api/public/shares/${token}/zip-link`).expect(404);
+
+        // Listed by name; the password itself is never in the list.
+        const list = await request(app)
+          .get('/api/shares')
+          .set('Authorization', `Bearer ${s.accessToken}`).set('X-Family-Id', s.family.id);
+        expect(list.body.items[0].targetLabel).toBe('Net banking');
+        expect(JSON.stringify(list.body)).not.toContain('S3cret-Pass!');
+
+        // In the Bin: the link shows nothing.
+        const { VaultItem } = await import('../src/models/VaultItem.js');
+        await VaultItem.updateOne({ _id: item.id }, { deletedAt: new Date() });
+        await request(app).get(`/api/public/shares/${token}`).expect(404);
       });
-      expect(res.status).toBe(400);
+
+      it('a note cannot be shared, nor a password from another family', async () => {
+        const s = await createFamilyWithMember();
+        const folder = await createFolder(s.family, s.membership);
+        const note = await addItem(s, folder, { kind: 'note', title: 'Locker', notes: 'row 4' });
+        const res = await post(s.accessToken, s.family).send({ targetType: 'item', targetId: note.id });
+        expect(res.status).toBe(404);
+
+        const login = await addItem(s, folder, LOGIN);
+        const other = await createFamilyWithMember();
+        const foreign = await post(other.accessToken, other.family).send({ targetType: 'item', targetId: login.id });
+        expect(foreign.status).toBe(404);
+      });
+
+      it('a folder link still leaves passwords out', async () => {
+        const s = await createFamilyWithMember();
+        const folder = await createFolder(s.family, s.membership);
+        await addItem(s, folder, LOGIN);
+        const created = await post(s.accessToken, s.family).send({ targetType: 'folder', targetId: folder.id });
+        const opened = await request(app).get(`/api/public/shares/${created.body.url.split('/s/')[1]}`).expect(200);
+        expect(JSON.stringify(opened.body)).not.toContain('S3cret-Pass!');
+        expect(JSON.stringify(opened.body)).not.toContain('ravi.k');
+      });
     });
 
     it('shares just one file of a document', async () => {

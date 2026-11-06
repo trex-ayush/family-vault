@@ -7,6 +7,8 @@ import { Share } from '../../models/Share.js';
 import { Family } from '../../models/Family.js';
 import { Document } from '../../models/Document.js';
 import { Folder } from '../../models/Folder.js';
+import { VaultItem } from '../../models/VaultItem.js';
+import { openText } from '../documents/secretText.js';
 import { logActivity } from '../../services/activityLogger.js';
 import { sha256Hex, decryptFileBuffer } from '../../utils/crypto.js';
 import { getStorage } from '../../storage/index.js';
@@ -34,9 +36,10 @@ async function resolveShare(token) {
 }
 
 /**
- * Public share payload — titles and files ONLY. Never document notes, passwords, note items or
- * internal ids beyond file ids:
- *   { familyName, targetType, expiresAt, document?: { title, files }, folderTree?: { name, isSystem, documents, subfolders } }
+ * Public share payload. Document and folder links: titles and files ONLY — never document notes,
+ * passwords, note items or internal ids beyond file ids. A password link: only that password's
+ * title, username and password (never its notes or other details), and never cached:
+ *   { familyName, targetType, expiresAt, document?: { title, files }, folderTree?: { name, isSystem, documents, subfolders }, password?: { title, username, password } }
  */
 router.get('/shares/:token', async (req, res, next) => {
   try {
@@ -64,6 +67,11 @@ router.get('/shares/:token', async (req, res, next) => {
       const tree = await buildFolderTree(share.familyId, share.targetId);
       if (!tree) throw new ApiError(404, 'NOT_FOUND', 'Shared folder not found');
       payload.folderTree = tree;
+    } else if (share.targetType === 'item') {
+      const item = await VaultItem.findOne(scopeToFamily(share.familyId, { _id: share.targetId, kind: 'login' })).lean();
+      if (!item) throw new ApiError(404, 'NOT_FOUND', 'Shared password not found');
+      payload.password = { title: item.title, username: openText(item.username), password: openText(item.password) };
+      res.set('Cache-Control', 'no-store');
     }
 
     await Share.updateOne({ _id: share._id }, { $inc: { openCount: 1 }, $set: { lastOpenedAt: new Date() } });

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast, { Toaster } from 'react-hot-toast';
-import { Ban, Clock, Download, File, FileText, Folder, Image, SearchX } from 'lucide-react';
+import { Ban, Check, Clock, Copy, Download, Eye, EyeOff, File, FileText, Folder, Image, SearchX } from 'lucide-react';
 import { publicApi } from '@/services/publicApi.js';
 import { withWakeRetry } from '@/services/serverWake.js';
 import { filesApi } from '@/services/filesApi.js';
@@ -14,11 +14,15 @@ import { CARD_SURFACE, GRID_GAP, ITEM_ICON_LG, KIND_ICON } from '@/components/ui
 import { folderName } from '@/features/folders/folderTreeUtils.js';
 import FilePreview from '@/features/documents/FilePreview.jsx';
 import Tooltip from '@/components/ui/Tooltip.jsx';
+import { Notice } from '@/components/ui/PageState.jsx';
+import { copyText } from '@/features/share/shareLinkUtils.jsx';
 
 /**
  * PublicShare — `/s/:token`. Standalone page (no AppShell, no login) that a relative opens from
- * a WhatsApp link, so it is built phone-first. It shows only titles and files — view or
- * download each one, or everything as a ZIP. Notes and passwords never reach this page.
+ * a WhatsApp link, so it is built phone-first. Document and folder links show only titles and
+ * files — view or download each one, or everything as a ZIP. Notes and passwords never reach this
+ * page, except a saved password someone chose to share by itself: its username and password,
+ * hidden until tapped.
  *
  * Must sit OUTSIDE the `<ProtectedRoute><AppShell/></ProtectedRoute>` tree. Renders its own
  * `Toaster` and `LanguageSwitcher` since the app chrome isn't here.
@@ -133,6 +137,52 @@ function FolderSection({ folder, depth = 0 }) {
   );
 }
 
+/** One copyable line of a shared password; `secret` stays as dots until tapped. */
+function PasswordLine({ label, value, secret = false }) {
+  const { t } = useTranslation('shares');
+  const [shown, setShown] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    if (!(await copyText(value))) {
+      toast.error(t('dialog.copyFailed', 'Could not copy. Press and hold the link to copy it.'));
+      return;
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <div className="flex items-center gap-1 px-4 py-3 sm:px-5">
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">{label}</p>
+        <p className="mt-0.5 break-all text-sm text-neutral-900 dark:text-neutral-100">{secret && !shown ? '••••••••' : value}</p>
+      </div>
+      {secret && (
+        <Button variant="ghost" size="icon" onClick={() => setShown((v) => !v)} aria-label={shown ? t('public.hidePassword', 'Hide password') : t('public.showPassword', 'Show password')}>
+          {shown ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+        </Button>
+      )}
+      <Button variant="ghost" size="icon" onClick={copy} aria-label={t('public.copyValue', 'Copy {{name}}', { name: label })}>
+        {copied ? <Check className="h-4 w-4 text-green-600" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
+      </Button>
+    </div>
+  );
+}
+
+function SharedPassword({ password }) {
+  const { t } = useTranslation('shares');
+  return (
+    <>
+      <Notice tone="warning" className="mb-4">
+        {t('public.passwordWarning', 'This is a private password. Please don’t forward this link or show it to anyone else.')}
+      </Notice>
+      <div className={`divide-y divide-neutral-100 dark:divide-neutral-700 ${CARD_SURFACE}`}>
+        {password.username && <PasswordLine label={t('public.username', 'Username / email')} value={password.username} />}
+        <PasswordLine label={t('public.password', 'Password')} value={password.password} secret />
+      </div>
+    </>
+  );
+}
+
 function CenteredMessage({ icon: Icon, title, description }) {
   return (
     <div className="relative flex min-h-[100dvh] items-center justify-center px-4">
@@ -179,7 +229,7 @@ export default function PublicShare() {
     return () => { cancelled = true; };
   }, [token]);
 
-  const title = share?.document?.title || folderName(share?.folderTree, t) || t('public.defaultTitle', 'Shared with you');
+  const title = share?.password?.title || share?.document?.title || folderName(share?.folderTree, t) || t('public.defaultTitle', 'Shared with you');
 
   const handleZipDownload = async () => {
     setZipLoading(true);
@@ -279,10 +329,10 @@ export default function PublicShare() {
               <span className="min-w-0">{title}</span>
             </h1>
             <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-              {fileCount === 1
+              {!share.password && (fileCount === 1
                 ? t('common:units.file_one', '{{count}} file', { count: fileCount })
-                : t('common:units.file_other', '{{count}} files', { count: fileCount })}
-              {share.expiresAt && ` · ${t('public.expiresAt', 'Link works until {{date}}', { date: formatDateTime(share.expiresAt) })}`}
+                : t('common:units.file_other', '{{count}} files', { count: fileCount }))}
+              {share.expiresAt && `${share.password ? '' : ' · '}${t('public.expiresAt', 'Link works until {{date}}', { date: formatDateTime(share.expiresAt) })}`}
             </p>
           </div>
           <div className="flex-shrink-0">
@@ -303,7 +353,9 @@ export default function PublicShare() {
           </Tooltip>
         )}
 
-        {isFolder ? (
+        {share.password ? (
+          <SharedPassword password={share.password} />
+        ) : isFolder ? (
           fileCount > 0 ? (
             <FolderSection folder={share.folderTree} />
           ) : (

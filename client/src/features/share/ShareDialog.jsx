@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Check, Copy, File, FileText, Folder, Share2 } from 'lucide-react';
+import { Check, Copy, File, FileText, Folder, KeyRound, Share2 } from 'lucide-react';
 import Drawer from '@/components/ui/Drawer.jsx';
 import Button from '@/components/ui/Button.jsx';
 import { sharesApi } from '@/services/sharesApi.js';
 import { familyApi } from '@/services/familyApi.js';
 import { formatDateTime } from '@/i18n/formatters.js';
 import { ListIcon } from '@/components/ui/ListRow.jsx';
+import { Notice } from '@/components/ui/PageState.jsx';
 import ChoiceGroup from '@/components/ui/ChoiceGroup.jsx';
 import { FIELD_BORDER, FIELD_CONTROL, FIELD_HINT } from '@/components/ui/tokens.js';
 import { SHARE_DURATIONS, durationLabel, durationTip, familyShareDuration } from './shareStatus.js';
@@ -22,12 +23,14 @@ import { Skeleton, SkeletonFields } from '@/components/ui/Skeleton.jsx';
  * link stays the same. Otherwise (`POST /shares`) it shows what is being shared by name, how long
  * the link lasts (the family's default from Settings, so it isn't asked again; "Change" opens the
  * choices for this one link), "Create link", then WhatsApp / Copy link / Share. Anyone with the
- * link sees only titles and files — never notes or passwords — so there are no other options to
- * think about.
+ * document or folder link sees only titles and files — never notes or passwords — so there are no
+ * other options to think about. A saved password can be shared too (targetType 'item'): only its
+ * title, username and password, with a warning, starting from the shortest time whatever the
+ * family's default is. The WhatsApp message only ever carries the name and the link.
  *
  * Normally opened through `ShareButton`, not rendered directly.
  *
- * Props: isOpen, onClose, targetType ('document'|'folder'), targetId, fileIds?, targetLabel?,
+ * Props: isOpen, onClose, targetType ('document'|'folder'|'item'), targetId, fileIds?, targetLabel?,
  * existing? (a Share plus its `url`, already looked up — goes straight to WhatsApp / Copy)
  */
 /** Does this link share exactly these files? (No file list = the whole document or folder.) */
@@ -86,7 +89,8 @@ export default function ShareDialog({ isOpen, onClose, targetType, targetId, fil
 
   useEffect(() => () => clearTimeout(copyTimer.current), []);
 
-  const selected = duration || familyShareDuration(family);
+  const isPassword = targetType === 'item';
+  const selected = duration || (isPassword ? SHARE_DURATIONS[0] : familyShareDuration(family));
   // Without the family's default we can't name it, so show the choices instead.
   const showChoices = changing || familyFailed;
   const fileCount = fileIds?.length || 0;
@@ -97,7 +101,7 @@ export default function ShareDialog({ isOpen, onClose, targetType, targetId, fil
     try {
       // Not changed: leave it out, and the server uses the family's default.
       const payload = { targetType, targetId };
-      if (showChoices) payload.duration = selected;
+      if (showChoices || isPassword) payload.duration = selected;
       if (fileCount) payload.fileIds = fileIds;
       const share = await sharesApi.create(payload);
       setCreated(share);
@@ -149,7 +153,10 @@ export default function ShareDialog({ isOpen, onClose, targetType, targetId, fil
   // What the recipient will get, in plain words.
   let WhatIcon = FileText;
   let whatDetail = t('dialog.whatDocument', 'All files in this document');
-  if (targetType === 'folder') {
+  if (isPassword) {
+    WhatIcon = KeyRound;
+    whatDetail = t('dialog.whatPassword', 'Only the username and password');
+  } else if (targetType === 'folder') {
     WhatIcon = Folder;
     whatDetail = t('dialog.whatFolder', 'Everything in this folder, including folders inside it');
   } else if (fileCount) {
@@ -159,7 +166,10 @@ export default function ShareDialog({ isOpen, onClose, targetType, targetId, fil
       : t('dialog.whatFiles_other', '{{count}} files', { count: fileCount });
   }
   let whatTitle = label;
-  if (!whatTitle) whatTitle = targetType === 'folder' ? t('dialog.thisFolder', 'This folder') : t('dialog.thisDocument', 'This document');
+  if (!whatTitle) {
+    if (isPassword) whatTitle = t('dialog.thisPassword', 'This password');
+    else whatTitle = targetType === 'folder' ? t('dialog.thisFolder', 'This folder') : t('dialog.thisDocument', 'This document');
+  }
 
   return (
     <Drawer
@@ -183,12 +193,18 @@ export default function ShareDialog({ isOpen, onClose, targetType, targetId, fil
     >
       <div className="space-y-4">
         <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-700 dark:bg-neutral-900">
-          <ListIcon icon={WhatIcon} kind={targetType === 'folder' ? 'folder' : 'document'} />
+          <ListIcon icon={WhatIcon} kind={isPassword ? 'password' : targetType === 'folder' ? 'folder' : 'document'} />
           <div className="min-w-0">
             <p className="break-words text-sm font-medium text-neutral-900 dark:text-neutral-100">{whatTitle}</p>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">{whatDetail}</p>
           </div>
         </div>
+
+        {isPassword && (
+          <Notice tone="warning">
+            {t('dialog.passwordWarning', 'Careful: anyone who gets this link can see this password until the link stops working. Send it only to someone you trust, and turn it off when they are done.')}
+          </Notice>
+        )}
 
         {created ? (
           <>
@@ -281,7 +297,7 @@ export default function ShareDialog({ isOpen, onClose, targetType, targetId, fil
               />
             ) : (
               <div className="flex items-center justify-between gap-3">
-                {familyLoading ? (
+                {familyLoading && !isPassword ? (
                   <Skeleton variant="line" width={140} />
                 ) : (
                   <p className="text-sm text-neutral-700 dark:text-neutral-300">
@@ -294,7 +310,9 @@ export default function ShareDialog({ isOpen, onClose, targetType, targetId, fil
               </div>
             )}
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              {t('dialog.privacyNote', 'Anyone with the link can see and download the files. Notes and passwords are never shared.')}
+              {isPassword
+                ? t('dialog.privacyNotePassword', 'Notes and other details of this password are not shared.')
+                : t('dialog.privacyNote', 'Anyone with the link can see and download the files. Document and folder links never include passwords or notes.')}
             </p>
           </>
         )}

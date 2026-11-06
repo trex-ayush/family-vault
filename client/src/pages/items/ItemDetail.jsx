@@ -14,6 +14,7 @@ import FolderBreadcrumb from '@/features/documents/FolderBreadcrumb.jsx';
 import { useFolderPath } from '@/features/documents/useFolderPath.js';
 import CopyButton, { ROUND_ICON_BUTTON } from '@/features/items/CopyButton.jsx';
 import Tooltip from '@/components/ui/Tooltip.jsx';
+import ShareButton from '@/features/share/ShareButton.jsx';
 import DetailHeader from '@/features/items/DetailHeader.jsx';
 import CollapsibleText from '@/features/items/CollapsibleText.jsx';
 import DetailAside from '@/features/items/DetailAside.jsx';
@@ -169,6 +170,12 @@ export default function ItemDetail() {
         actions={
           canWrite && (
             <>
+              {!isNote && <ShareButton variant="icon" targetType="item" targetId={item.id} targetLabel={item.title} className="sm:hidden" />}
+              {!isNote && (
+                <span className="hidden sm:block">
+                  <ShareButton targetType="item" targetId={item.id} targetLabel={item.title} size="sm" />
+                </span>
+              )}
               <Tooltip content={t('common:tip.edit', 'Change this')} className="inline-flex sm:hidden">
                 <Link to={editTo} className={ICON_BUTTON_CLASS} aria-label={t('common:actions.edit', 'Edit')}>
                   <Pencil className="h-5 w-5" aria-hidden="true" />

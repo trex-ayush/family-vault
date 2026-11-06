@@ -28,7 +28,7 @@
     "whatFiles_one": "{{count}} file",
     "whatFiles_other": "{{count}} files",
     "validFor": "Link valid for",
-    "privacyNote": "Anyone with the link can see and download the files. Notes and passwords are never shared.",
+    "privacyNote": "Anyone with the link can see and download the files. Document and folder links never include passwords or notes.",
     "create": "Create link",
     "createError": "Could not make the link. Please try again.",
     "linkLabel": "Share link",
@@ -46,7 +46,11 @@
     "changeTime": "Change",
     "timeChanged": "This link now works for {{time}}",
     "timeChangeFailed": "Could not change the time. Please try again.",
-    "newTime": "Link works for"
+    "newTime": "Link works for",
+    "whatPassword": "Only the username and password",
+    "thisPassword": "This password",
+    "passwordWarning": "Careful: anyone who gets this link can see this password until the link stops working. Send it only to someone you trust, and turn it off when they are done.",
+    "privacyNotePassword": "Notes and other details of this password are not shared."
   },
   "page": {
     "title": "Shares",
@@ -68,7 +72,8 @@
   },
   "targetType": {
     "document": "Document",
-    "folder": "Folder"
+    "folder": "Folder",
+    "item": "Password"
   },
   "actions": {
     "revoke": "Revoke",
@@ -115,7 +120,13 @@
     "error": {
       "title": "Something went wrong",
       "description": "Please try again in a moment."
-    }
+    },
+    "passwordWarning": "This is a private password. Please don’t forward this link or show it to anyone else.",
+    "username": "Username / email",
+    "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "copyValue": "Copy {{name}}"
   },
   "tip": {
     "share": "Send this to someone",
@@ -145,8 +156,9 @@
     "shareHint": "Send it on WhatsApp or copy it",
     "shareHintOld": "This older link can’t be shown again, so this makes a new one",
     "shareHintOff": "This link is off, so this makes a new one",
-    "openFolder": "See this folder",
-    "openDocument": "See this document",
-    "linkFailed": "Could not get this link. Please try again."
+    "linkFailed": "Could not get this link. Please try again.",
+    "open_document": "See this document",
+    "open_folder": "See this folder",
+    "open_item": "See this password"
   }
 }

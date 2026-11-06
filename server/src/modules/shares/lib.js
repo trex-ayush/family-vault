@@ -2,6 +2,7 @@ import { ApiError } from '../../middleware/errorHandler.js';
 import { scopeToFamily } from '../../middleware/auth.js';
 import { Document } from '../../models/Document.js';
 import { Folder } from '../../models/Folder.js';
+import { VaultItem } from '../../models/VaultItem.js';
 import { ANY_DELETED_STATE } from '../../models/plugins/softDelete.js';
 
 /** Share duration code -> milliseconds. Codes match Family SHARE_DURATIONS. */
@@ -33,10 +34,14 @@ export async function loadTarget(familyId, targetType, targetId) {
   if (targetType === 'folder') {
     return Folder.findOne(scopeToFamily(familyId, { _id: targetId })).select('name').lean();
   }
+  // Only a saved password can be shared this way, never a note.
+  if (targetType === 'item') {
+    return VaultItem.findOne(scopeToFamily(familyId, { _id: targetId, kind: 'login' })).select('title').lean();
+  }
   return null;
 }
 
-/** Human label for a loaded target (document title / folder name). */
+/** Human label for a loaded target (document or password title / folder name). */
 export function targetLabelFrom(targetType, target) {
   if (!target) return null;
   return targetType === 'folder' ? target.name || null : target.title || null;
@@ -50,22 +55,29 @@ export function targetLabelFrom(targetType, target) {
 export async function resolveTargetLabels(familyId, shares) {
   const documentIds = [];
   const folderIds = [];
+  const itemIds = [];
   for (const s of shares) {
     if (s.targetType === 'document') documentIds.push(String(s.targetId));
     else if (s.targetType === 'folder') folderIds.push(String(s.targetId));
+    else if (s.targetType === 'item') itemIds.push(String(s.targetId));
   }
 
-  const [docs, folders] = await Promise.all([
+  const [docs, folders, items] = await Promise.all([
     documentIds.length
       ? Document.find(scopeToFamily(familyId, { _id: { $in: documentIds }, ...ANY_DELETED_STATE })).select('title deletedAt files._id files.label files.originalName').lean()
       : [],
     folderIds.length
       ? Folder.find(scopeToFamily(familyId, { _id: { $in: folderIds }, ...ANY_DELETED_STATE })).select('name deletedAt').lean()
       : [],
+    itemIds.length
+      ? VaultItem.find(scopeToFamily(familyId, { _id: { $in: itemIds }, ...ANY_DELETED_STATE })).select('title deletedAt').lean()
+      : [],
   ]);
   const docMap = new Map(docs.map((d) => [String(d._id), { label: d.title, deleted: Boolean(d.deletedAt), files: d.files || [] }]));
   const folderMap = new Map(folders.map((f) => [String(f._id), { label: f.name, deleted: Boolean(f.deletedAt) }]));
-  const find = (share) => (share.targetType === 'document' ? docMap : folderMap).get(String(share.targetId));
+  const itemMap = new Map(items.map((i) => [String(i._id), { label: i.title, deleted: Boolean(i.deletedAt) }]));
+  const maps = { document: docMap, folder: folderMap, item: itemMap };
+  const find = (share) => maps[share.targetType]?.get(String(share.targetId));
 
   return {
     labelFor: (share) => find(share)?.label ?? null,

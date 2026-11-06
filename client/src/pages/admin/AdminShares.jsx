@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { FileText, Folder, Lock, Share2 } from 'lucide-react';
+import { FileText, Folder, KeyRound, Lock, Share2 } from 'lucide-react';
 import Button from '@/components/ui/Button.jsx';
 import Badge from '@/components/ui/Badge.jsx';
 import Table from '@/components/ui/Table.jsx';
@@ -174,10 +174,11 @@ function statusOf(share) {
 function TargetCell({ share }) {
   const { t } = useTranslation('adminOps');
   const isFolder = share.targetType === 'folder';
-  const Icon = isFolder ? Folder : FileText;
+  const isPassword = share.targetType === 'item';
+  const Icon = isFolder ? Folder : isPassword ? KeyRound : FileText;
   return (
     <span className="flex items-center gap-3 min-w-0">
-      <ListIcon icon={Icon} kind={isFolder ? 'folder' : 'document'} />
+      <ListIcon icon={Icon} kind={isFolder ? 'folder' : isPassword ? 'password' : 'document'} />
       <span className="min-w-0">
         <span className="block font-medium truncate max-w-[16rem]">{share.targetTitle || t('shares.untitled', '(no name)')}</span>
         <span className="flex flex-wrap items-center gap-1.5 mt-0.5">
@@ -269,7 +270,7 @@ function ShareCardRow({ share, onRevoke }) {
   return (
     <div className="p-4 space-y-2">
       <div className="flex items-start gap-3">
-        <ListIcon icon={isFolder ? Folder : FileText} kind={isFolder ? 'folder' : 'document'} />
+        <ListIcon icon={isFolder ? Folder : share.targetType === 'item' ? KeyRound : FileText} kind={isFolder ? 'folder' : share.targetType === 'item' ? 'password' : 'document'} />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 break-words">
             {share.targetTitle || t('shares.untitled', '(no name)')}

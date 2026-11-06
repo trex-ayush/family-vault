@@ -475,6 +475,7 @@ restored, and `targetLabel` still names it.
 
 ### POST /shares
 Body: `{ "targetType": "document"|"folder", "targetId", "fileIds"?: ["..."], "duration"?: "12h"|"24h"|"7d" }`.
+`targetType` may also be `item` (a saved password, never a note): the public link then shows only its title, username and password.
 `fileIds` (documents only) shares just those files — e.g. one photo. Without `duration` the family's
 `defaultShareDuration` is used. Response `201`: `{ ...Share, "url": "https://<client>/s/<token>" }`.
 Errors: `404 NOT_FOUND` (target, or none of `fileIds` belong to the document).

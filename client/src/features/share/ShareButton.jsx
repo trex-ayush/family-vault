@@ -12,7 +12,7 @@ import { useCanWrite } from '@/hooks/useCanWrite.js';
  * dialog (what is being shared, how long the link lasts, Create link → WhatsApp / Copy / Share).
  *
  * Props:
- *  - targetType: 'document' | 'folder'
+ *  - targetType: 'document' | 'folder' | 'item' (a saved password)
  *  - targetId: string
  *  - fileIds?: string[] — share only these files of a document (e.g. a single file)
  *  - variant?: 'button' (default) | 'icon' | 'menuitem' (inside a `<Dropdown>`)

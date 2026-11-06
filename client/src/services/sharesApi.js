@@ -8,7 +8,7 @@ export const sharesApi = {
   /**
    * POST /shares -> 201 { ...Share, url } — `url` (the raw share link) is returned here and by
    * `link` below, never in `list`.
-   * Body: { targetType: 'document'|'folder', targetId, fileIds?, duration?: '12h'|'24h'|'7d' }
+   * Body: { targetType: 'document'|'folder'|'item', targetId, fileIds?, duration?: '12h'|'24h'|'7d' }
    * (no duration = the family's default).
    */
   create: (payload) => apiClient.post('/shares', payload).then((res) => res.data),

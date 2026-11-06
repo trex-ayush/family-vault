@@ -3,9 +3,11 @@ import { applyIdTransform } from '../utils/mongooseJson.js';
 import { SHARE_DURATIONS } from './Family.js';
 
 /**
- * A public, no-login link to one document (optionally just some of its files) or one folder
- * (with everything inside it, at any depth). The public page only ever shows titles and files —
- * never notes, passwords or note items. Links always expire (see SHARE_DURATIONS).
+ * A public, no-login link to one document (optionally just some of its files), one folder (with
+ * everything inside it, at any depth) or one saved password. Document and folder links only ever
+ * show titles and files — never notes, passwords or note items. A password link shows that
+ * password's title, username and password, nothing else; someone chose to share exactly that, after
+ * a warning. Links always expire (see SHARE_DURATIONS).
  */
 const shareSchema = new mongoose.Schema(
   {
@@ -14,7 +16,7 @@ const shareSchema = new mongoose.Schema(
     // The link's token, encrypted, so the Shares page can show the same link again. Links made
     // before this existed don't have it and can't be shown again.
     tokenSealed: { type: String, default: null },
-    targetType: { type: String, enum: ['document', 'folder'], required: true },
+    targetType: { type: String, enum: ['document', 'folder', 'item'], required: true },
     targetId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
     // Subset of a document's files to expose (single-file share); empty/undefined = all files.
     fileIds: { type: [mongoose.Schema.Types.ObjectId], default: undefined },

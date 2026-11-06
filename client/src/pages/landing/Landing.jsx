@@ -431,7 +431,7 @@ function Safety() {
     { icon: KeyRound, title: t('safety.loginTitle', 'Your login password stays secret'), text: t('safety.loginText', 'It is stored scrambled, never as you typed it. Too many wrong tries are blocked.') },
     { icon: Timer, title: t('safety.idleTitle', 'Signs out by itself'), text: t('safety.idleText', 'Left the app open? It signs you out after an hour without use.') },
     { icon: LogOut, title: t('safety.everywhereTitle', 'Lost a phone? You stay in control'), text: t('safety.everywhereText', 'Change your password and every other phone and computer is signed out.') },
-    { icon: Link2, title: t('safety.linksTitle', 'Links that switch off'), text: t('safety.linksText', 'Shared links stop working by themselves. Passwords and notes are never shared.') },
+    { icon: Link2, title: t('safety.linksTitle', 'Links that switch off'), text: t('safety.linksText', 'Shared links stop working by themselves. Document and folder links never include passwords or notes.') },
     { icon: History, title: t('safety.activityTitle', 'See who did what'), text: t('safety.activityText', 'Activity shows who added, opened or shared each document.') },
   ];
   return (
@@ -545,7 +545,7 @@ function Why() {
   const points = [
     { icon: HeartHandshake, title: t('why.easyTitle', 'Easy for parents'), text: t('why.easyText', 'Big buttons, plain words and the whole app in Hindi. Add a document in three taps.') },
     { icon: ShieldCheck, title: t('why.privateTitle', 'Private and encrypted'), text: t('why.privateText', 'Files and passwords are stored encrypted. Only the people in your family can see them.') },
-    { icon: Link2, title: t('why.shareTitle', 'Share without worry'), text: t('why.shareText', 'Send a document on WhatsApp with a link that switches off by itself. Passwords and notes are never shared.') },
+    { icon: Link2, title: t('why.shareTitle', 'Share without worry'), text: t('why.shareText', 'Send a document on WhatsApp with a link that switches off by itself. Document and folder links never include passwords or notes.') },
     { icon: Users, title: t('why.familyTitle', 'The whole family together'), text: t('why.familyText', 'Invite family members and choose who can only look and who can add or change things.') },
     { icon: Camera, title: t('why.scanTitle', 'Scan with your camera'), text: t('why.scanText', 'Take a photo of a paper: the edges are cut neatly and the words are read, so you can search them later.') },
     { icon: Search, title: t('why.findTitle', 'Find anything fast'), text: t('why.findText', 'Search by name, note or the words inside a document. No more digging through WhatsApp chats.') },

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { FileText, Folder, FolderOpen, Share2 } from 'lucide-react';
+import { FileText, Folder, FolderOpen, KeyRound, Share2 } from 'lucide-react';
 import PageContainer from '@/components/ui/PageContainer.jsx';
 import PageHeader from '@/components/ui/PageHeader.jsx';
 import Button from '@/components/ui/Button.jsx';
@@ -25,6 +25,13 @@ import RequireWrite from '@/features/members/RequireWrite.jsx';
 import Tooltip from '@/components/ui/Tooltip.jsx';
 
 const PAGE_SIZE = 20;
+
+/** What each kind of link points at: its icon, colour and page. */
+const TARGETS = {
+  document: { icon: FileText, kind: 'document', path: '/documents' },
+  folder: { icon: Folder, kind: 'folder', path: '/browse' },
+  item: { icon: KeyRound, kind: 'password', path: '/items' },
+};
 
 /**
  * Shares page (`/shares`) — every link the family has made: what it shares, when it expires,
@@ -205,16 +212,16 @@ function ShareChoices({ chosen, onClose }) {
   const [busy, setBusy] = useState(false);
   const share = chosen?.share;
   const label = chosen?.label;
-  const isFolder = share?.targetType === 'folder';
+  const target = TARGETS[share?.targetType] || TARGETS.document;
   const sendsSameLink = share && shareStatusOf(share) === 'active' && share.canShowLink;
 
   const handleShare = async () => {
-    const target = { targetType: share.targetType, targetId: share.targetId, fileIds: share.fileIds?.length ? share.fileIds : undefined, targetLabel: label };
+    const props = { targetType: share.targetType, targetId: share.targetId, fileIds: share.fileIds?.length ? share.fileIds : undefined, targetLabel: label };
     setBusy(true);
     try {
       const existing = sendsSameLink ? { ...share, url: (await sharesApi.link(share.id)).url } : null;
       onClose();
-      openShareDialog({ ...target, existing }, queryClient);
+      openShareDialog({ ...props, existing }, queryClient);
     } catch (err) {
       toast.error(err?.response?.data?.message || t('choice.linkFailed', 'Could not get this link. Please try again.'));
     } finally {
@@ -242,10 +249,10 @@ function ShareChoices({ chosen, onClose }) {
             onClick={busy ? undefined : handleShare}
           />
           <ListRow
-            icon={<ListIcon icon={isFolder ? FolderOpen : FileText} kind={isFolder ? 'folder' : 'document'} />}
+            icon={<ListIcon icon={share.targetType === 'folder' ? FolderOpen : target.icon} kind={target.kind} />}
             title={t('choice.open', 'Open')}
-            meta={isFolder ? t('choice.openFolder', 'See this folder') : t('choice.openDocument', 'See this document')}
-            to={`${isFolder ? '/browse' : '/documents'}/${share.targetId}`}
+            meta={t(`choice.open_${share.targetType}`, { document: 'See this document', folder: 'See this folder', item: 'See this password' }[share.targetType])}
+            to={`${target.path}/${share.targetId}`}
           />
         </ListCard>
       )}
@@ -256,9 +263,9 @@ function ShareChoices({ chosen, onClose }) {
 function ShareRow({ share, isAdmin, onChoose, onRevoke, onReactivate, onRemove }) {
   const { t } = useTranslation(['shares', 'common']);
   const status = shareStatusOf(share);
-  const Icon = share.targetType === 'folder' ? Folder : FileText;
+  const target = TARGETS[share.targetType] || TARGETS.document;
   const opens = share.openCount ?? 0;
-  const typeLabel = share.targetType === 'folder' ? t('targetType.folder', 'Folder') : t('targetType.document', 'Document');
+  const typeLabel = t(`targetType.${share.targetType}`, { document: 'Document', folder: 'Folder', item: 'Password' }[share.targetType]);
   // The Shared folder is stored as "Shared"; show it in the reader's language.
   const { data: tree } = useFolderTree({ enabled: share.targetType === 'folder' });
   const sharedFolder = share.targetType === 'folder' ? tree?.items?.find((f) => f.id === share.targetId && f.isSystem) : null;
@@ -273,7 +280,7 @@ function ShareRow({ share, isAdmin, onChoose, onRevoke, onReactivate, onRemove }
       wrapMeta
       stackActions
       onClick={openable ? () => onChoose(share, share.fileNames?.length ? `${label} – ${share.fileNames.join(', ')}` : label) : undefined}
-      icon={<ListIcon icon={Icon} kind={share.targetType === 'folder' ? 'folder' : 'document'} />}
+      icon={<ListIcon icon={target.icon} kind={target.kind} />}
       title={label || t('page.untitled', '(no name)')}
       meta={
         <>
@@ -324,7 +331,7 @@ function ShareRow({ share, isAdmin, onChoose, onRevoke, onReactivate, onRemove }
             )}
             {isAdmin && (
               <Tooltip content={t('tip.remove', 'Remove it from this list')}>
-                <Button variant="ghost" size="sm" onClick={() => onRemove(share)}>
+                <Button variant="secondary" size="sm" onClick={() => onRemove(share)}>
                   {t('common:actions.remove', 'Remove')}
                 </Button>
               </Tooltip>

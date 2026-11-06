@@ -251,18 +251,20 @@ export const SHARE_FIELDS = 'familyId targetType targetId expiresAt revokedAt op
 export async function buildShareRows(shares) {
   if (!shares.length) return [];
   const byType = (t) => shares.filter((s) => s.targetType === t).map((s) => s.targetId);
-  const [families, docs, folders, creators] = await Promise.all([
+  const [families, docs, folders, items, creators] = await Promise.all([
     mapById(Family, shares.map((s) => s.familyId), 'name'),
     // Include binned targets so the title still shows.
     mapById(Document, byType('document'), 'title', ANY_DELETED_STATE),
     mapById(Folder, byType('folder'), 'name', ANY_DELETED_STATE),
+    // Only ever the title: the admin panel never sees a shared password.
+    mapById(VaultItem, byType('item'), 'title', ANY_DELETED_STATE),
     mapById(Membership, shares.map((s) => s.createdBy), 'name userId'),
   ]);
   const users = await mapById(User, [...creators.values()].map((m) => m.userId), 'email');
 
   const now = Date.now();
   return shares.map((s) => {
-    const target = s.targetType === 'document' ? docs.get(String(s.targetId)) : folders.get(String(s.targetId));
+    const target = ({ document: docs, folder: folders, item: items })[s.targetType]?.get(String(s.targetId));
     const creator = creators.get(String(s.createdBy));
     return {
       id: str(s._id),
