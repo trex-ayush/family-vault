@@ -135,7 +135,7 @@ export function DropdownItem({ onSelect, disabled, danger, tip, children }) {
   );
   if (!tip) return row;
   return (
-    <Tooltip content={tip} position="left" className="grid">
+    <Tooltip content={tip} position="left" className="grid grid-cols-[minmax(0,1fr)]">
       {row}
     </Tooltip>
   );

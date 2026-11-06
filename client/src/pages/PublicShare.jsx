@@ -52,7 +52,7 @@ function FileCard({ file, onOpen }) {
   return (
     <div className={`flex flex-col overflow-hidden ${CARD_SURFACE}`}>
       {/* Opens in the app's own viewer (images zoom, PDFs show on phones too). */}
-      <Tooltip content={t('documents:tip.viewFile', 'See this file big')} className="grid">
+      <Tooltip content={t('documents:tip.viewFile', 'See this file big')} className="grid grid-cols-[minmax(0,1fr)]">
       <button
         type="button"
         onClick={onOpen}

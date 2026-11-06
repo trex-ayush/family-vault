@@ -101,7 +101,7 @@ export default function Activity() {
         />
       ) : (
         <>
-          <ListCard columns>
+          <ListCard>
             {items.map((activity) => (
               <ActivityRow key={activity.id} activity={activity} />
             ))}

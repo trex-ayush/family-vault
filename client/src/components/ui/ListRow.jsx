@@ -71,7 +71,9 @@ export function ListIcon({ icon: Icon, kind = 'document', src }) {
  * cutting it with "…"; a cut title shows whole in a tooltip on hover — `titleTip` sets that text
  * when `title` isn't a plain string),
  * tip? (a short "what happens when you open it" tooltip on the main area — buttons in `actions`
- * keep their own), as? (root element, default 'div'; use 'li' inside a ListCard as="ul").
+ * keep their own), as? (root element, default 'div'; use 'li' inside a ListCard as="ul"),
+ * stackActions? (phones: text-labelled `actions` go on their own line under the text, so they
+ * don't squeeze the name; not with `tip`).
  */
 export function ListRow({
   as: As = 'div',
@@ -89,13 +91,14 @@ export function ListRow({
   wrapMeta = false,
   titleTip,
   tip,
+  stackActions = false,
   className = '',
 }) {
   const interactive = Boolean(to || onClick);
   const pad = compact
     ? `py-2 pl-3 ${actions ? 'pr-2' : 'pr-3'}`
     : `py-3 pl-4 sm:pl-5 ${actions ? 'pr-2' : 'pr-4 sm:pr-5'}`;
-  const mainCls = `flex min-w-0 flex-1 items-center gap-3 self-stretch text-left ${pad} ${
+  const mainCls = `flex min-w-0 flex-1 items-center gap-3 self-stretch text-left ${pad} ${stackActions ? 'max-sm:basis-full' : ''} ${
     interactive ? 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400' : ''
   }`;
 
@@ -135,12 +138,21 @@ export function ListRow({
 
   return (
     <As
-      className={`flex items-center transition-colors ${compact ? 'rounded-lg' : 'min-h-16 first:rounded-t-xl last:rounded-b-xl'} ${
+      className={`flex items-center transition-colors ${stackActions ? 'max-sm:flex-wrap' : ''} ${compact ? 'rounded-lg' : 'min-h-16 first:rounded-t-xl last:rounded-b-xl'} ${
         active ? ROW_ACTIVE : interactive ? ROW_HOVER : ''
       } ${className}`}
     >
       {main}
-      {actions && <div className={`flex flex-shrink-0 items-center gap-2 ${compact ? 'pr-3' : 'pr-4 sm:pr-5'}`}>{actions}</div>}
+      {actions && (
+        <div
+          className={`flex flex-shrink-0 items-center gap-2 ${compact ? 'pr-3' : 'pr-4 sm:pr-5'} ${
+            // Under the text: past the row's padding, the 32px icon and its gap.
+            stackActions ? 'max-sm:w-full max-sm:flex-wrap max-sm:pb-3 max-sm:pl-[3.75rem]' : ''
+          }`}
+        >
+          {actions}
+        </div>
+      )}
     </As>
   );
 }

@@ -227,7 +227,7 @@ export default function ResizeEditor({ file, onChangeImage }) {
 
             <Input label={t('fileName', 'File name')} value={fileName} onChange={(e) => setFileName(e.target.value)} />
 
-            <Tooltip content={t('tip.download', 'Save the smaller photo')} className="grid">
+            <Tooltip content={t('tip.download', 'Save the smaller photo')} className="grid grid-cols-[minmax(0,1fr)]">
               <Button block onClick={handleDownload} disabled={!result || computing} leftIcon={<Download className="h-4 w-4" aria-hidden="true" />}>
                 {t('download', 'Download')}
               </Button>

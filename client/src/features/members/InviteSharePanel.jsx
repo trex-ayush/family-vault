@@ -98,7 +98,7 @@ export default function InviteSharePanel({ name, email, familyName, invite }) {
         </p>
       </div>
 
-      <Tooltip content={t('members:tip.whatsapp', 'Send it on WhatsApp')} className="grid">
+      <Tooltip content={t('members:tip.whatsapp', 'Send it on WhatsApp')} className="grid grid-cols-[minmax(0,1fr)]">
         <Button
           as="a"
           href={whatsappHref}
@@ -114,7 +114,7 @@ export default function InviteSharePanel({ name, email, familyName, invite }) {
       </Tooltip>
 
       {canNativeShare && (
-        <Tooltip content={t('common:tip.otherApp', 'Send it using another app')} className="grid">
+        <Tooltip content={t('common:tip.otherApp', 'Send it using another app')} className="grid grid-cols-[minmax(0,1fr)]">
           <Button variant="ghost" block onClick={handleNativeShare} leftIcon={<Share2 className="h-4 w-4" aria-hidden="true" />}>
             {t('members:invite.more', 'More')}
           </Button>

@@ -59,7 +59,7 @@ export default function ChoiceGroup({ options, value, onChange, label, hint, inf
             </label>
           );
           return opt.tip ? (
-            <Tooltip key={String(opt.value)} content={opt.tip} className="grid">
+            <Tooltip key={String(opt.value)} content={opt.tip} className="grid grid-cols-[minmax(0,1fr)]">
               {row}
             </Tooltip>
           ) : (

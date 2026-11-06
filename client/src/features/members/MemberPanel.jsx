@@ -208,7 +208,7 @@ export default function MemberPanel({
               <InviteSharePanel name={member.name} email={email} familyName={familyName} invite={invite} />
             ) : (
               <div>
-                <Tooltip content={t('tip.newInviteLink', 'Make a new invite link')} className="grid">
+                <Tooltip content={t('tip.newInviteLink', 'Make a new invite link')} className="grid grid-cols-[minmax(0,1fr)]">
                 <Button
                   variant="secondary"
                   block
@@ -224,7 +224,7 @@ export default function MemberPanel({
               </div>
             )}
             <div>
-              <Tooltip content={t('tip.resend', 'Send the invite again')} className="grid">
+              <Tooltip content={t('tip.resend', 'Send the invite again')} className="grid grid-cols-[minmax(0,1fr)]">
               <Button
                 variant="secondary"
                 block
@@ -245,14 +245,14 @@ export default function MemberPanel({
           <section aria-labelledby="member-account" className="space-y-2 border-t border-neutral-200 pt-6 dark:border-neutral-700">
             <h3 id="member-account" className={`mb-2 ${SECTION_TITLE}`}>{t('panel.accountTitle', 'Account')}</h3>
             {canResetPassword && (
-              <Tooltip content={t('tip.resetPassword', 'Set a new password for them')} className="grid">
+              <Tooltip content={t('tip.resetPassword', 'Set a new password for them')} className="grid grid-cols-[minmax(0,1fr)]">
                 <Button variant="secondary" block onClick={() => onResetPassword(member)} leftIcon={<KeyRound className="h-4 w-4" aria-hidden="true" />}>
                   {t('actionsMenu.resetPassword', 'Reset password')}
                 </Button>
               </Tooltip>
             )}
             {canRemove && (
-              <Tooltip content={t('tip.removeMember', 'Take them out of this family')} className="grid">
+              <Tooltip content={t('tip.removeMember', 'Take them out of this family')} className="grid grid-cols-[minmax(0,1fr)]">
                 <Button variant="danger-ghost" block onClick={() => onRemove(member)} leftIcon={<UserMinus className="h-4 w-4" aria-hidden="true" />}>
                   {t('panel.removeFromFamily', 'Remove from family')}
                 </Button>

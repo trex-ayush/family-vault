@@ -79,7 +79,7 @@ export default function MobileDrawer({ isOpen, onClose }) {
         </div>
 
         {family && (
-          <Tooltip content={t('tip.switchFamily', 'Change family or make a new one')} className="grid">
+          <Tooltip content={t('tip.switchFamily', 'Change family or make a new one')} className="grid grid-cols-[minmax(0,1fr)]">
           <button
             type="button"
             onClick={openSwitcher}
@@ -102,7 +102,7 @@ export default function MobileDrawer({ isOpen, onClose }) {
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.to}>
-                <Tooltip content={t(item.tipKey, item.tip)} position="right" className="grid">
+                <Tooltip content={t(item.tipKey, item.tip)} position="right" className="grid grid-cols-[minmax(0,1fr)]">
                   <NavLink
                     to={item.to}
                     end={item.end}

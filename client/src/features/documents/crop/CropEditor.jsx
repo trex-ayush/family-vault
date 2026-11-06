@@ -210,25 +210,25 @@ export default function CropEditor({ file, crop, onDone, onClose }) {
         </div>
 
         <div className="grid flex-shrink-0 grid-cols-4 gap-1 px-2 pb-[calc(var(--safe-bottom)+0.5rem)] pt-2">
-          <Tooltip content={t('tip.rotateLeft', 'Turn the photo left')} className="grid">
+          <Tooltip content={t('tip.rotateLeft', 'Turn the photo left')} className="grid grid-cols-[minmax(0,1fr)]">
             <button type="button" className={toolBtn} onClick={() => turn(-1)} disabled={!preview}>
               <RotateCcw className="h-5 w-5" aria-hidden="true" />
               {t('crop.rotateLeft', 'Rotate left')}
             </button>
           </Tooltip>
-          <Tooltip content={t('tip.rotateRight', 'Turn the photo right')} className="grid">
+          <Tooltip content={t('tip.rotateRight', 'Turn the photo right')} className="grid grid-cols-[minmax(0,1fr)]">
             <button type="button" className={toolBtn} onClick={() => turn(1)} disabled={!preview}>
               <RotateCw className="h-5 w-5" aria-hidden="true" />
               {t('crop.rotateRight', 'Rotate right')}
             </button>
           </Tooltip>
-          <Tooltip content={t('tip.resetCrop', 'Undo my changes')} className="grid">
+          <Tooltip content={t('tip.resetCrop', 'Undo my changes')} className="grid grid-cols-[minmax(0,1fr)]">
             <button type="button" className={toolBtn} onClick={reset} disabled={!preview}>
               <Undo2 className="h-5 w-5" aria-hidden="true" />
               {t('crop.reset', 'Reset')}
             </button>
           </Tooltip>
-          <Tooltip content={t('tip.wholePhoto', 'Keep the whole photo')} className="grid">
+          <Tooltip content={t('tip.wholePhoto', 'Keep the whole photo')} className="grid grid-cols-[minmax(0,1fr)]">
             <button type="button" className={toolBtn} onClick={() => setQuad(null)} disabled={!preview || !quad}>
               <Maximize className="h-5 w-5" aria-hidden="true" />
               {t('crop.whole', 'Whole photo')}

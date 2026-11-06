@@ -148,6 +148,7 @@ export default function Bin() {
                 wrapMeta
                 key={`${entry.type}-${entry.id}`}
                 icon={<ListIcon icon={TYPE_ICON[entry.type] || FileText} kind={TYPE_KIND[entry.type] || 'document'} />}
+                stackActions
                 title={entry.name}
                 meta={metaFor(entry)}
                 snippet={entry.type === 'file' && entry.documentDeleted ? t('restoresDocument', 'Restoring also brings back the document.') : null}

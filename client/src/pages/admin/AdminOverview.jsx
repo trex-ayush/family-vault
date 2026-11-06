@@ -22,7 +22,7 @@ function TopFamilies({ families }) {
     <ul className="-mx-2 space-y-1">
       {families.map((f) => (
         <li key={f.id}>
-          <Tooltip content={t('tip.openFamily', 'See this family')} className="grid">
+          <Tooltip content={t('tip.openFamily', 'See this family')} className="grid grid-cols-[minmax(0,1fr)]">
           <Link
             to={`/admin/families?open=${encodeURIComponent(f.id)}`}
             className="block min-h-11 rounded-lg px-2 py-2 hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-primary-400 dark:hover:bg-neutral-700/40"

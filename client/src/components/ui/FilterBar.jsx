@@ -122,20 +122,20 @@ function FilterControl({ filter: f, value, onChange, id }) {
   );
 }
 
-function Segment({ filter: f, value, onChange }) {
+function Segment({ filter: f, value, onChange, fill = false }) {
   return (
-    <div role="radiogroup" aria-label={f.label} className={`flex max-w-full overflow-x-auto ${SEGMENT_TRACK}`}>
+    <div role="radiogroup" aria-label={f.label} className={`flex max-w-full overflow-x-auto ${fill ? 'w-full' : ''} ${SEGMENT_TRACK}`}>
       {(f.options || []).map((o) => {
         const active = o.value === value;
         // `tip` (optional) explains the choice in a few words on hover / keyboard focus.
         return (
-          <Tooltip key={String(o.value)} content={o.tip} position="bottom" className="flex">
+          <Tooltip key={String(o.value)} content={o.tip} position="bottom" className={`flex ${fill ? 'flex-1' : ''}`}>
             <button
               type="button"
               role="radio"
               aria-checked={active}
               onClick={() => onChange(o.value)}
-              className={`min-h-9 whitespace-nowrap px-3 text-sm lg:min-h-7 ${segmentItem(active)}`}
+              className={`min-h-9 whitespace-nowrap px-3 text-sm lg:min-h-7 ${fill ? 'w-full' : ''} ${segmentItem(active)}`}
             >
               {o.label}
             </button>
@@ -298,7 +298,7 @@ export default function FilterBar({
         )}
 
         {segments.map((f) => (
-          <Segment key={f.key} filter={f} value={values[f.key]} onChange={(v) => setOne(f.key, v)} />
+          <Segment key={f.key} fill filter={f} value={values[f.key]} onChange={(v) => setOne(f.key, v)} />
         ))}
       </div>
 

@@ -27,7 +27,7 @@ export default function FolderField({ folderId, onChange, label }) {
         <span aria-hidden="true">{fieldLabel}</span>
         <InfoTip text={t('common:tip.saveInFolderInfo', 'The folder where this will be kept')} />
       </div>
-      <Tooltip content={t('common:tip.pickFolder', 'Pick a different folder')} className="grid">
+      <Tooltip content={t('common:tip.pickFolder', 'Pick a different folder')} className="grid grid-cols-[minmax(0,1fr)]">
       <button
         type="button"
         onClick={() => setPickerOpen(true)}

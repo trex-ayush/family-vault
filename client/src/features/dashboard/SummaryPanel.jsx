@@ -24,7 +24,7 @@ function Row({ row, tone }) {
   if (to) {
     return (
       <li>
-        <Tooltip content={tip} className="grid">
+        <Tooltip content={tip} className="grid grid-cols-[minmax(0,1fr)]">
           <Link
             to={to}
             className={`${ROW} -mx-1.5 px-1.5 hover:bg-neutral-100 active:bg-neutral-200 focus-visible:outline-2 focus-visible:outline-primary-400 dark:hover:bg-neutral-700/60 dark:active:bg-neutral-700`}
