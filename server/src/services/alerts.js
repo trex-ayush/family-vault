@@ -274,6 +274,23 @@ async function flushDeleteBatch(batch) {
 
 // ---------- login security ----------
 
+/** The kind of device and browser, without versions: an app update isn't a new device. */
+const deviceKind = (userAgent) => `${describeDevice(userAgent)}|${describeBrowser(userAgent)}`;
+
+/**
+ * Has this device signed in before? Network addresses can't decide this alone: a phone's changes
+ * all the time (mobile data, Wi-Fi), so comparing them sent a "new device" email for the same phone.
+ *  - the browser's saved device id matches an earlier sign-in; or
+ *  - the same kind of device and browser on the same network (a private window or cleared browser
+ *    data loses the id, and sign-ins from before the id existed don't have one).
+ * The same kind of phone somewhere else with another id is still a new device.
+ */
+function isKnownDevice(activity, priorLogins) {
+  if (activity.deviceHash && priorLogins.some((a) => a.deviceHash === activity.deviceHash)) return true;
+  const kind = deviceKind(activity.userAgent);
+  return priorLogins.some((a) => a.ipHash === activity.ipHash && deviceKind(a.userAgent) === kind);
+}
+
 async function alertNewDeviceLogin(activity, ctx = {}) {
   // NOTE: `auth.login` is logged via `reqCtx(req)` (service.js/googleService.js), not a real
   // authenticated `req` — so `activity.actorMembershipId` is always null here (it's only ever
@@ -291,15 +308,13 @@ async function alertNewDeviceLogin(activity, ctx = {}) {
     _id: { $ne: activity._id },
   })
     .sort({ createdAt: -1 })
-    .limit(10)
-    .select('ipHash userAgent')
+    .limit(50)
+    .select('ipHash userAgent deviceHash')
     .lean();
 
   if (!priorLogins.length) return; // first-ever login on record for this account — no baseline yet
 
-  const seen = new Set(priorLogins.map((a) => `${a.ipHash || ''}:${a.userAgent || ''}`));
-  const current = `${activity.ipHash || ''}:${activity.userAgent || ''}`;
-  if (seen.has(current)) return;
+  if (isKnownDevice(activity, priorLogins)) return;
 
   const membership = await Membership.findOne({ familyId: activity.familyId, userId: activity.targetId }).lean();
   const familyName = await getFamilyName(activity.familyId);

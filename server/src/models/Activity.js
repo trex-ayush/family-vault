@@ -22,6 +22,8 @@ const activitySchema = new mongoose.Schema(
     // Free-form, e.g. { changedKeys: ['PAN Number'] } — NEVER put a sensitive field's value here.
     meta: { type: mongoose.Schema.Types.Mixed, default: {} },
     ipHash: { type: String, default: null },
+    // Sign-ins only, never sent to the app: recognises a device whose network address changed.
+    deviceHash: { type: String, default: null },
     userAgent: { type: String, default: '' },
     // Computed at write time from the *current* activity retention setting (platform admin's
     // `PlatformSettings.activityRetentionDays` -> env — see `services/activityLogger.js` +

@@ -231,43 +231,65 @@ describe('admin instant alerts — deletes are batched', () => {
 });
 
 describe('admin instant alerts — login security', () => {
-  it('emails the admin on a login from a device/browser not seen before', async () => {
-    const s = await signupFamily(app);
+  const ANDROID_CHROME = 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36';
+  const ANDROID_CHROME_UPDATED = 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36';
+  const WINDOWS_CHROME = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
 
-    // First-ever login for this membership (signup already logged one `auth.login`-equivalent
-    // via auth.signup, but there's no PRIOR `auth.login` to compare against) — establishes the
-    // baseline, no alert yet.
-    const login1 = await request(app)
-      .post('/api/auth/login')
-      .set('User-Agent', 'Mozilla/5.0 (Baseline Device)')
-      .send({ email: s.payload.email, password: s.payload.password });
-    expect(login1.status).toBe(200);
+  /** Signs in from a given browser, network address and (optionally) saved device id. */
+  function signIn(s, { ua, ip, device }) {
+    const req = request(app).post('/api/auth/login').set('User-Agent', ua).set('X-Forwarded-For', ip);
+    if (device) req.set('X-Device-Id', device);
+    return req.send({ email: s.payload.email, password: s.payload.password }).expect(200);
+  }
+
+  it('emails the admin on a sign-in from another device', async () => {
+    const s = await signupFamily(app);
+    await signIn(s, { ua: ANDROID_CHROME, ip: '203.0.113.1', device: 'phone-1' });
     await wait();
     mockSendMail.mockReset();
 
-    const login2 = await request(app)
-      .post('/api/auth/login')
-      .set('User-Agent', 'Mozilla/5.0 (A Totally Different Device)')
-      .send({ email: s.payload.email, password: s.payload.password });
-    expect(login2.status).toBe(200);
-    // Positive assertion downstream of a background bcrypt-gated handler — poll like every other
-    // "does email" case in this file (see waitForMailCalls's doc comment) instead of a fixed
-    // sleep, which was flaky under concurrent sandbox load.
+    await signIn(s, { ua: WINDOWS_CHROME, ip: '203.0.113.9', device: 'pc-1' });
     await waitForMailCalls(1);
 
     expect(mockSendMail).toHaveBeenCalledTimes(1);
     expect(mockSendMail.mock.calls[0][0].subject.toLowerCase()).toContain('new device');
   });
 
-  it('does not email again for the exact same device/browser combo', async () => {
+  it('emails when the same kind of phone signs in from elsewhere: it is another device', async () => {
     const s = await signupFamily(app);
-    const ua = 'Mozilla/5.0 (Same Device)';
-
-    await request(app).post('/api/auth/login').set('User-Agent', ua).send({ email: s.payload.email, password: s.payload.password }).expect(200);
+    await signIn(s, { ua: ANDROID_CHROME, ip: '203.0.113.1', device: 'phone-1' });
     await wait();
     mockSendMail.mockReset();
 
-    await request(app).post('/api/auth/login').set('User-Agent', ua).send({ email: s.payload.email, password: s.payload.password }).expect(200);
+    await signIn(s, { ua: ANDROID_CHROME, ip: '198.51.100.7', device: 'someone-elses-phone' });
+    await waitForMailCalls(1);
+
+    expect(mockSendMail).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not email again for the same device, even when its network or browser version changes', async () => {
+    const s = await signupFamily(app);
+    await signIn(s, { ua: ANDROID_CHROME, ip: '203.0.113.1', device: 'phone-1' });
+    await wait();
+    mockSendMail.mockReset();
+
+    await signIn(s, { ua: ANDROID_CHROME, ip: '203.0.113.1', device: 'phone-1' }); // same everything
+    await signIn(s, { ua: ANDROID_CHROME, ip: '198.51.100.7', device: 'phone-1' }); // mobile data
+    await signIn(s, { ua: ANDROID_CHROME_UPDATED, ip: '192.0.2.44', device: 'phone-1' }); // browser updated
+    await wait();
+
+    expect(mockSendMail).not.toHaveBeenCalled();
+  });
+
+  it('does not email for the same browser on the same network when the saved id is gone', async () => {
+    const s = await signupFamily(app);
+    await signIn(s, { ua: ANDROID_CHROME, ip: '203.0.113.1', device: 'phone-1' });
+    await wait();
+    mockSendMail.mockReset();
+
+    // A private window or cleared browser data: no id, or a fresh one.
+    await signIn(s, { ua: ANDROID_CHROME_UPDATED, ip: '203.0.113.1' });
+    await signIn(s, { ua: ANDROID_CHROME, ip: '203.0.113.1', device: 'fresh-id' });
     await wait();
 
     expect(mockSendMail).not.toHaveBeenCalled();

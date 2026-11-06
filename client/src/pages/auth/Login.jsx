@@ -78,20 +78,14 @@ export default function Login() {
 
   const handleGoogleCredential = async (credential) => {
     setFormError('');
+    setGoogleCompleting(true);
     try {
       const result = await loginWithGoogle(credential);
       if (result?.needsSignup) {
-        setGoogleCompleting(true);
-        try {
-          await completeGoogleSignup(result.signupToken);
-          toast.success(t('login.welcomeBack', 'Welcome to Family Vault!'));
-          redirectAfterAuth();
-        } finally {
-          setGoogleCompleting(false);
-        }
-      } else {
-        redirectAfterAuth();
+        await completeGoogleSignup(result.signupToken);
+        toast.success(t('login.welcomeBack', 'Welcome to Family Vault!'));
       }
+      redirectAfterAuth();
     } catch (err) {
       if (isLoginMethodNotAllowed(err)) {
         setFormError(t('signInMethods.passwordOnlyError', 'This app only allows email and password sign-in.'));
@@ -99,6 +93,8 @@ export default function Login() {
         return;
       }
       setFormError(err?.response?.data?.message || t('login.googleFailed', 'Could not sign in with Google.'));
+    } finally {
+      setGoogleCompleting(false);
     }
   };
 
@@ -106,8 +102,8 @@ export default function Login() {
 
   if (googleCompleting) {
     return (
-      <AuthLayout photo="family" title={t('login.almostThere', 'Almost there')} subtitle={t('login.oneMoreStep', 'One moment...')}>
-        {/* Finishing a Google sign-up: the card keeps its shape while the account is set up. */}
+      <AuthLayout photo="family" title={t('login.signingIn', 'Signing you in')} subtitle={t('login.oneMoment', 'One moment…')}>
+        {/* From Google's answer until the app opens: the card keeps its shape and says what's happening. */}
         <SignInSkeleton rows={2} />
       </AuthLayout>
     );

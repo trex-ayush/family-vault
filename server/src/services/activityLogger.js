@@ -1,5 +1,5 @@
 import { Activity } from '../models/Activity.js';
-import { hashIp } from '../utils/crypto.js';
+import { hashDeviceId, hashIp } from '../utils/crypto.js';
 import { onActivity } from './alerts.js';
 import { getEffectiveFamilySettings } from '../utils/effectiveSettings.js';
 
@@ -37,6 +37,7 @@ export async function logActivity(req, { action, targetType = null, targetId = n
     shareId,
     meta,
     ipHash: hashIp(getIp(req)),
+    deviceHash: hashDeviceId(req?.headers?.['x-device-id']),
     userAgent: (req?.headers?.['user-agent'] || '').slice(0, 300),
     expiresAt: new Date(Date.now() + retentionDays * DAY_MS),
   });

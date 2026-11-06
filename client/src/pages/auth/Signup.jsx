@@ -89,23 +89,17 @@ export default function Signup() {
 
   const handleGoogleCredential = async (credential) => {
     setFormError('');
+    setGoogleCompleting(true);
     try {
       const result = await loginWithGoogle(credential);
       if (result?.needsSignup) {
         // Brand-new Google identity — nothing left to collect (no family
         // name anymore), finish the signup immediately.
-        setGoogleCompleting(true);
-        try {
-          await completeGoogleSignup(result.signupToken);
-          toast.success(t('signup.welcome', 'Welcome to Family Vault!'));
-          navigate('/', { replace: true });
-        } finally {
-          setGoogleCompleting(false);
-        }
-      } else {
-        // An existing Google-linked account signed in from the signup page — just enter the app.
-        navigate('/', { replace: true });
+        await completeGoogleSignup(result.signupToken);
+        toast.success(t('signup.welcome', 'Welcome to Family Vault!'));
       }
+      // Either way (an existing account may sign in from this page too), enter the app.
+      navigate('/', { replace: true });
     } catch (err) {
       if (isLoginMethodNotAllowed(err)) {
         setFormError(t('signInMethods.passwordOnlyError', 'This app only allows email and password sign-in.'));
@@ -113,6 +107,8 @@ export default function Signup() {
         return;
       }
       setFormError(err?.response?.data?.message || t('signup.googleFailed', 'Could not sign in with Google.'));
+    } finally {
+      setGoogleCompleting(false);
     }
   };
 
@@ -120,8 +116,8 @@ export default function Signup() {
 
   if (googleCompleting) {
     return (
-      <AuthLayout photo="paperwork" title={t('signup.settingUp', 'Setting up your account')} subtitle={t('signup.oneMoment', 'One moment...')}>
-        {/* Finishing a Google sign-up: the card keeps its shape while the account is set up. */}
+      <AuthLayout photo="paperwork" title={t('login.signingIn', 'Signing you in')} subtitle={t('login.oneMoment', 'One moment…')}>
+        {/* From Google's answer until the app opens: the card keeps its shape and says what's happening. */}
         <SignInSkeleton rows={2} />
       </AuthLayout>
     );

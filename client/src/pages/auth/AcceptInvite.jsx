@@ -38,6 +38,7 @@ export default function AcceptInvite() {
   const { method, showGoogle, showPassword, googleUnavailable, isResolving, refetch: refetchMethods } = useSignInMethods();
 
   const [status, setStatus] = useState('loading'); // 'loading' | 'ready' | 'invalid'
+  const [googleBusy, setGoogleBusy] = useState(false);
   const [context, setContext] = useState(null); // { email, familyName, allowsGoogle }
   const [formError, setFormError] = useState('');
 
@@ -110,6 +111,7 @@ export default function AcceptInvite() {
 
   const handleGoogleCredential = async (credential) => {
     setFormError('');
+    setGoogleBusy(true);
     try {
       const result = await loginWithGoogle(credential);
       if (result?.needsSignup) {
@@ -137,10 +139,20 @@ export default function AcceptInvite() {
         return;
       }
       setFormError(err?.response?.data?.message || t('acceptInvite.googleFailed', 'Could not sign in with Google.'));
+    } finally {
+      setGoogleBusy(false);
     }
   };
 
   if (isAuthenticated) return <Navigate to="/" replace />;
+
+  if (googleBusy) {
+    return (
+      <AuthLayout photo="family" title={t('login.signingIn', 'Signing you in')} subtitle={t('login.oneMoment', 'One moment…')}>
+        <SignInSkeleton rows={2} />
+      </AuthLayout>
+    );
+  }
 
   if (status === 'loading' || isResolving) {
     return (

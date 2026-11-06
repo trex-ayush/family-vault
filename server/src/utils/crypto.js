@@ -104,6 +104,12 @@ export function generateOpaqueToken(bytes = 32) {
 
 // ---------- IP hashing (never store raw IPs) ----------
 
+/** The browser's saved device id (see client services/deviceId.js) is only ever stored hashed. */
+export function hashDeviceId(id) {
+  if (!id) return null;
+  return sha256Hex(`device:${String(id).slice(0, 100)}:${env.JWT_ACCESS_SECRET}`).slice(0, 32);
+}
+
 export function hashIp(ip) {
   if (!ip) return null;
   return sha256Hex(`${ip}:${env.JWT_ACCESS_SECRET}`).slice(0, 32);

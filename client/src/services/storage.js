@@ -70,4 +70,5 @@ export const STORAGE_KEYS = {
   memberships: 'family-vault-memberships',
   activeFamilyId: 'family-vault-active-family',
   theme: 'family-vault-theme',
+  deviceId: 'family-vault-device-id',
 };

@@ -1,4 +1,5 @@
 import { apiClient } from './apiClient.js';
+import { deviceIdHeaders } from './deviceId.js';
 
 /**
  * `/auth/*` — see docs/API.md "Auth — /auth". Every function is a thin
@@ -17,7 +18,7 @@ export const authApi = {
   signup: (payload) => apiClient.post('/auth/signup', payload).then((res) => res.data),
 
   /** POST /auth/login — { email, password } -> { user, memberships, accessToken, refreshToken } */
-  login: (payload) => apiClient.post('/auth/login', payload).then((res) => res.data),
+  login: (payload) => apiClient.post('/auth/login', payload, { headers: deviceIdHeaders() }).then((res) => res.data),
 
   /** POST /auth/refresh — { refreshToken } -> { accessToken, refreshToken }. Mostly used by apiClient's own interceptor. */
   refresh: (refreshToken) => apiClient.post('/auth/refresh', { refreshToken }).then((res) => res.data),
@@ -53,7 +54,7 @@ export const authApi = {
    * `{ needsSignup: true, signupToken, profile: { name, email, avatarUrl } }`
    * — call `googleComplete` next.
    */
-  googleLogin: (credential) => apiClient.post('/auth/google', { credential }).then((res) => res.data),
+  googleLogin: (credential) => apiClient.post('/auth/google', { credential }, { headers: deviceIdHeaders() }).then((res) => res.data),
 
   /**
    * POST /auth/google/complete — { signupToken } -> same session shape as
