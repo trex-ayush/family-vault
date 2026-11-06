@@ -204,9 +204,9 @@ export default function DocumentDetail() {
         menuLabel={t('detail.moreActions', 'More actions')}
         actions={
           <>
-            <ShareButton targetType="document" targetId={doc.id} variant="icon" className="sm:hidden" />
+            <ShareButton targetType="document" targetId={doc.id} targetLabel={doc.title} variant="icon" className="sm:hidden" />
             <span className="hidden sm:block">
-              <ShareButton targetType="document" targetId={doc.id} size="sm" />
+              <ShareButton targetType="document" targetId={doc.id} targetLabel={doc.title} size="sm" />
             </span>
           </>
         }

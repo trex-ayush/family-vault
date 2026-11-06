@@ -124,7 +124,7 @@ export default function FileGallery({ document }) {
   // One file: its preview (tap to open the viewer), name, and Download · Share · Delete.
   const fileTile = (file, index, wide = false) => (
     <>
-      <Tooltip content={t('tip.viewFile', 'See this file big')} className="grid">
+      <Tooltip content={t('tip.viewFile', 'See this file big')} className="grid grid-cols-[minmax(0,1fr)]">
       <button
         type="button"
         onClick={() => setPreviewIndex(index)}
@@ -163,7 +163,7 @@ export default function FileGallery({ document }) {
             <Download className="h-4 w-4" aria-hidden="true" />
           </Button>
         </Tooltip>
-        <ShareButton targetType="document" targetId={document.id} fileIds={[file.id]} variant="icon" label={t('fileGallery.shareFile', 'Share this file')} />
+        <ShareButton targetType="document" targetId={document.id} fileIds={[file.id]} targetLabel={`${document.title} – ${fileName(file)}`} variant="icon" label={t('fileGallery.shareFile', 'Share this file')} />
         {/* Rename and Move to Bin sit in a ⋮ menu: four full-size buttons don't fit a phone tile. */}
         {canWrite && (
           <Dropdown

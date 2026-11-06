@@ -40,7 +40,8 @@
     "saved": "Family settings saved",
     "saveFailed": "Could not save family settings.",
     "shareDurationLabel": "Default share link duration",
-    "shareDurationHint": "New share links work for this long. You can pick another time when sharing."
+    "shareDurationHint": "New share links work for this long. You can pick another time when sharing.",
+    "durationSaved": "New links now work for {{time}}"
   },
   "notifications": {
     "emailNotConfigured": "Email isn't configured for this deployment — alerts won't actually be delivered (they're only logged on the server).",

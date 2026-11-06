@@ -11,13 +11,16 @@ import Tooltip from '@/components/ui/Tooltip.jsx';
  * A folder's "…" menu: Rename, Move, Share, Delete (moves to the Bin). The family's system
  * "Shared" folder can only be shared — it can't be renamed, moved or deleted.
  * Any handler left out hides its item. `vertical` shows ⋮ instead of … (folder cards).
+ * `withShare={false}` leaves Share out, for places that show its button beside the menu; a menu
+ * left with nothing in it (the Shared folder) isn't shown.
  */
-export default function FolderActionsMenu({ folder, onRename, onMove, onDelete, align = 'right', vertical = false }) {
+export default function FolderActionsMenu({ folder, onRename, onMove, onDelete, align = 'right', vertical = false, withShare = true }) {
   const { t } = useTranslation(['browse', 'common']);
   const canWrite = useCanWrite();
   // Everything in this menu changes something — view-only members don't get it.
   if (!folder || !canWrite) return null;
   const editable = !folder.isSystem;
+  if (!withShare && !(editable && (onRename || onMove || onDelete))) return null;
 
   return (
     <Dropdown
@@ -40,7 +43,7 @@ export default function FolderActionsMenu({ folder, onRename, onMove, onDelete, 
           <MenuRow icon={FolderInput}>{t('actionsMenu.move', 'Move')}</MenuRow>
         </DropdownItem>
       )}
-      <ShareButton variant="menuitem" targetType="folder" targetId={folder.id} targetLabel={folderName(folder, t)} />
+      {withShare && <ShareButton variant="menuitem" targetType="folder" targetId={folder.id} targetLabel={folderName(folder, t)} />}
       {editable && onDelete && (
         <>
           <DropdownDivider />

@@ -11,6 +11,9 @@ const shareSchema = new mongoose.Schema(
   {
     familyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Family', required: true, index: true },
     tokenHash: { type: String, required: true, unique: true, index: true },
+    // The link's token, encrypted, so the Shares page can show the same link again. Links made
+    // before this existed don't have it and can't be shown again.
+    tokenSealed: { type: String, default: null },
     targetType: { type: String, enum: ['document', 'folder'], required: true },
     targetId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
     // Subset of a document's files to expose (single-file share); empty/undefined = all files.
@@ -18,6 +21,8 @@ const shareSchema = new mongoose.Schema(
     duration: { type: String, enum: SHARE_DURATIONS, required: true },
     expiresAt: { type: Date, required: true },
     revokedAt: { type: Date, default: null },
+    // Turned off by a platform admin: the family can't turn it back on.
+    revokedByAdmin: { type: Boolean, default: false },
     openCount: { type: Number, default: 0 },
     downloadCount: { type: Number, default: 0 },
     lastOpenedAt: { type: Date, default: null },
@@ -28,6 +33,6 @@ const shareSchema = new mongoose.Schema(
 
 shareSchema.index({ familyId: 1, targetId: 1 });
 
-applyIdTransform(shareSchema, { hide: ['tokenHash'] });
+applyIdTransform(shareSchema, { hide: ['tokenHash', 'tokenSealed'] });
 
 export const Share = mongoose.model('Share', shareSchema);

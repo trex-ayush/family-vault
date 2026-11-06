@@ -73,6 +73,7 @@ export const ACTION_LABELS = {
   'family.test_email': { key: 'familyTestEmail', fallback: 'Sent a test email', continuationFallback: 'sent a test email' },
   'share.create': { key: 'shareCreate', fallback: 'Created a share link', continuationFallback: 'created a share link' },
   'share.revoke': { key: 'shareRevoke', fallback: 'Turned off a share link', continuationFallback: 'turned off a share link' },
+  'share.reactivate': { key: 'shareReactivate', fallback: 'Turned a share link back on', continuationFallback: 'turned a share link back on' },
   'share.delete': { key: 'shareDelete', fallback: 'Removed a share link', continuationFallback: 'removed a share link' },
   'share.open': { key: 'shareOpen', fallback: 'Opened a share link', continuationFallback: 'opened a share link' },
   'share.download': { key: 'shareDownload', fallback: 'Downloaded from a share link', continuationFallback: 'downloaded from a share link' },

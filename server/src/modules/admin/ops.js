@@ -136,7 +136,7 @@ router.post('/shares/:id/revoke', validate({ params: idParams }), async (req, re
 
     if (!share.revokedAt) {
       share.revokedAt = new Date();
-      await Share.updateOne({ _id: share._id, revokedAt: null }, { $set: { revokedAt: share.revokedAt } });
+      await Share.updateOne({ _id: share._id, revokedAt: null }, { $set: { revokedAt: share.revokedAt, revokedByAdmin: true } });
       const [row] = await buildShareRows([share]);
       await logAdminAction(req, {
         action: 'admin.share.revoke',
@@ -149,6 +149,8 @@ router.post('/shares/:id/revoke', validate({ params: idParams }), async (req, re
       return res.json(row);
     }
 
+    // Already off (the family did it): still keep it off for good.
+    await Share.updateOne({ _id: share._id }, { $set: { revokedByAdmin: true } });
     const [row] = await buildShareRows([share]);
     res.json(row);
   } catch (err) {

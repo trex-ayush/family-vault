@@ -379,7 +379,9 @@ describe('families, shares, activity', () => {
     const rev = await post(sup, `/shares/${active._id}/revoke`).expect(200);
     expect(rev.body.status).toBe('revoked');
     expect(rev.body.revokedAt).toBeTruthy();
-    expect((await Share.findById(active._id).lean()).revokedAt).toBeTruthy();
+    const revoked = await Share.findById(active._id).lean();
+    expect(revoked.revokedAt).toBeTruthy();
+    expect(revoked.revokedByAdmin).toBe(true);
     const logged = await Activity.findOne({ action: 'admin.share.revoke' }).lean();
     expect(String(logged.familyId)).toBe(f.familyId);
     await post(sup, `/shares/${new mongoose.Types.ObjectId()}/revoke`).expect(404);

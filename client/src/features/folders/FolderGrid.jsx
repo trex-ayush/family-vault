@@ -6,6 +6,7 @@ import { GRID_GAP, KIND_ICON } from '@/components/ui/tokens.js';
 import { filesApi } from '@/services/filesApi.js';
 import { formatDate } from '@/i18n/formatters.js';
 import FolderActionsMenu from './FolderActionsMenu.jsx';
+import ShareButton from '@/features/share/ShareButton.jsx';
 import { folderColor, siblingColors } from './folderColors.js';
 import { folderName } from './folderTreeUtils.js';
 import Tooltip from '@/components/ui/Tooltip.jsx';
@@ -15,15 +16,15 @@ import Tooltip from '@/components/ui/Tooltip.jsx';
  * least 210px) as the row holds, stretched to fill it.
  *
  *   ┌───────────────────────┐
- *   │ [folder]            ⋮ │   the folder in its own colour (Shared: coral + heart), ⋮ menu
+ *   │ [folder]          < ⋮ │   the folder in its own colour (Shared: coral + heart), Share, ⋮ menu
  *   │ Papa                  │   name (one line, "…")
  *   │ 4 items           (›) │   what's inside, round › in a neutral circle
  *   │ ～～～～～～～～～～～ │   a soft wave in the folder's colour
  *   └───────────────────────┘
  *
- * The whole card opens the folder; the ⋮ (Rename, Move, Share, Delete — only Share for Shared)
- * sits above it. `handlers` ({ onRename, onMove, onDelete }, each taking the folder) turn the
- * menu on; without them there's no ⋮.
+ * The whole card opens the folder; Share and the ⋮ (Rename, Move, Delete — none for Shared) sit
+ * above it. `handlers` ({ onRename, onMove, onDelete }, each taking the folder) turn the menu on;
+ * without them there's no ⋮.
  */
 
 // Phones: two per row. Wider screens: as many ~210px+ cards as fit, stretched to fill the row
@@ -78,7 +79,7 @@ function FolderCard({ folder, colors, handlers }) {
   const withMenu = Boolean(handlers);
   const to = `/browse/${folder.id}`;
   return (
-    <Tooltip content={t('common:tip.openFolder', 'Open this folder')} className="grid h-full">
+    <Tooltip content={t('common:tip.openFolder', 'Open this folder')} className="grid h-full grid-cols-[minmax(0,1fr)]">
     <div className="relative flex h-full min-h-[8.5rem] flex-col rounded-2xl border border-neutral-200 bg-white p-3.5 sm:min-h-[10rem] sm:p-4 shadow-soft-xs transition-colors hover:border-neutral-300 hover:bg-neutral-50/60 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600 dark:hover:bg-neutral-800/80">
       {/* The wave is clipped to the card; the ⋮ menu must not be, so only this layer hides overflow. */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
@@ -114,17 +115,19 @@ function FolderCard({ folder, colors, handlers }) {
           </Tooltip>
         </div>
       </div>
-      {withMenu && (
-        <div className="absolute right-1 top-1">
+      <div className="absolute right-1 top-1 flex items-center">
+        <ShareButton variant="icon" targetType="folder" targetId={folder.id} targetLabel={name} />
+        {withMenu && (
           <FolderActionsMenu
             folder={folder}
             vertical
+            withShare={false}
             onRename={() => handlers.onRename(folder)}
             onMove={() => handlers.onMove(folder)}
             onDelete={() => handlers.onDelete(folder)}
           />
-        </div>
-      )}
+        )}
+      </div>
     </div>
     </Tooltip>
   );
@@ -174,7 +177,7 @@ function ContentCard({ entry }) {
       ? t('common:tip.openNote', 'Read this note')
       : t('common:tip.openPassword', 'See this password');
   return (
-    <Tooltip content={tip} className="grid h-full">
+    <Tooltip content={tip} className="grid h-full grid-cols-[minmax(0,1fr)]">
     <div className={CARD_SHELL}>
       <Link
         to={to}

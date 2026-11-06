@@ -5,6 +5,7 @@ import { filesApi } from '@/services/filesApi.js';
 import { formatDate } from '@/i18n/formatters.js';
 import { ListCard, ListIcon, ListRow } from '@/components/ui/ListRow.jsx';
 import FolderActionsMenu from './FolderActionsMenu.jsx';
+import ShareButton from '@/features/share/ShareButton.jsx';
 import { folderName } from './folderTreeUtils.js';
 import { FolderGlyph } from './FolderGrid.jsx';
 import Tooltip from '@/components/ui/Tooltip.jsx';
@@ -42,9 +43,11 @@ export function FolderListRow({ folder, colors, meta, snippet, onRename, onMove,
       snippet={snippet}
       actions={
         <span className="flex items-center gap-1">
+          {showMenu && <ShareButton variant="icon" targetType="folder" targetId={folder.id} targetLabel={folderName(folder, t)} />}
           {showMenu && (
             <FolderActionsMenu
               folder={folder}
+              withShare={false}
               onRename={onRename && (() => onRename(folder))}
               onMove={onMove && (() => onMove(folder))}
               onDelete={onDelete && (() => onDelete(folder))}

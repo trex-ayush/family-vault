@@ -9,7 +9,8 @@
   },
   "status": {
     "expired": "Expired",
-    "revoked": "Turned off"
+    "revoked": "Turned off",
+    "revokedByAdmin": "Turned off by the site admin"
   },
   "timeRemaining": {
     "minutesLeft": "{{count}} min left",
@@ -37,10 +38,15 @@
     "moreWays": "Share another way",
     "copied": "Link copied",
     "copyFailed": "Could not copy. Press and hold the link to copy it.",
-    "manageHint": "You can turn this link off any time from the Shares page.",
+    "manageHint": "You can turn this link off or back on any time from the Shares page.",
     "shareMessage": "From Family Vault: {{url}}",
     "shareMessageNamed": "“{{label}}” from Family Vault: {{url}}",
-    "nativeTitle": "Shared from Family Vault"
+    "nativeTitle": "Shared from Family Vault",
+    "worksFor": "Link works for {{time}}",
+    "changeTime": "Change",
+    "timeChanged": "This link now works for {{time}}",
+    "timeChangeFailed": "Could not change the time. Please try again.",
+    "newTime": "Link works for"
   },
   "page": {
     "title": "Shares",
@@ -65,11 +71,12 @@
     "folder": "Folder"
   },
   "actions": {
-    "revoke": "Revoke"
+    "revoke": "Revoke",
+    "reactivate": "Turn on again"
   },
   "revokeModal": {
     "title": "Turn off this link?",
-    "description": "Anyone who has the link will not be able to open it any more. You can always make a new link."
+    "description": "Anyone who has the link will not be able to open it any more. You can turn it back on later: choose All on this page."
   },
   "removeModal": {
     "title": "Remove from the list?",
@@ -79,7 +86,9 @@
     "revoked": "Link turned off",
     "revokeFailed": "Could not turn off this link.",
     "removed": "Removed from the list",
-    "removeFailed": "Could not remove this link."
+    "removeFailed": "Could not remove this link.",
+    "reactivated": "Link is on again",
+    "reactivateFailed": "Could not turn this link back on."
   },
   "public": {
     "defaultTitle": "Shared with you",
@@ -120,6 +129,24 @@
     "duration": "The link stops after {{time}}",
     "validForInfo": "After this, the link stops working",
     "filterActive": "Only links that still work",
-    "filterAll": "Also old and stopped links"
+    "filterAll": "Also old and stopped links",
+    "reactivate": "Make this same link work again",
+    "changeTime": "Choose another time for this link",
+    "changeTimeSameLink": "Keep this link, for another length of time"
+  },
+  "reactivateModal": {
+    "title": "Turn this link on again?",
+    "description": "The same link you already sent will work again for {{time}}. Anyone who has it can open the files."
+  },
+  "choice": {
+    "title": "What do you want to do?",
+    "share": "Share link",
+    "open": "Open",
+    "shareHint": "Send it on WhatsApp or copy it",
+    "shareHintOld": "This older link can’t be shown again, so this makes a new one",
+    "shareHintOff": "This link is off, so this makes a new one",
+    "openFolder": "See this folder",
+    "openDocument": "See this document",
+    "linkFailed": "Could not get this link. Please try again."
   }
 }

@@ -333,6 +333,109 @@ describe('shares module', () => {
       expect(revokedList.body.items).toHaveLength(1);
     });
 
+    it('turns an off link back on: the same link works again, for its own length of time', async () => {
+      const { family, membership, accessToken } = await createFamilyWithMember();
+      const folder = await createFolder(family, membership);
+      const doc = await createDocument(family, membership, folder);
+      const patch = (id, body) => request(app)
+        .patch(`/api/shares/${id}`)
+        .set('Authorization', `Bearer ${accessToken}`).set('X-Family-Id', family.id)
+        .send(body);
+
+      const created = await post(accessToken, family).send({ targetType: 'document', targetId: doc.id, duration: '24h' });
+      const token = created.body.url.split('/s/')[1];
+      await patch(created.body.id, { revoke: true }).expect(200);
+      await request(app).get(`/api/public/shares/${token}`).expect(410);
+
+      const on = await patch(created.body.id, { reactivate: true }).expect(200);
+      expect(on.body.status).toBe('active');
+      expect(on.body.revokedAt).toBeNull();
+      expectExpiresIn(on.body, 24 * HOUR);
+      await request(app).get(`/api/public/shares/${token}`).expect(200);
+
+      // An expired link can come back too.
+      await Share.updateOne({ _id: created.body.id }, { expiresAt: new Date(Date.now() - HOUR) });
+      await request(app).get(`/api/public/shares/${token}`).expect(410);
+      const again = await patch(created.body.id, { reactivate: true }).expect(200);
+      expectExpiresIn(again.body, 24 * HOUR);
+
+      // Turning on a link that already works changes nothing.
+      await Share.updateOne({ _id: created.body.id }, { expiresAt: new Date(Date.now() + HOUR) });
+      const same = await patch(created.body.id, { reactivate: true }).expect(200);
+      expectExpiresIn(same.body, HOUR);
+
+      await patch(created.body.id, { revoke: true, reactivate: true }).expect(400);
+    });
+
+    it('will not turn a link back on when an admin turned it off or its document is in the Bin', async () => {
+      const { family, membership, accessToken } = await createFamilyWithMember();
+      const folder = await createFolder(family, membership);
+      const doc = await createDocument(family, membership, folder);
+      const patch = (id, body) => request(app)
+        .patch(`/api/shares/${id}`)
+        .set('Authorization', `Bearer ${accessToken}`).set('X-Family-Id', family.id)
+        .send(body);
+
+      const byAdmin = await post(accessToken, family).send({ targetType: 'document', targetId: doc.id });
+      await Share.updateOne({ _id: byAdmin.body.id }, { revokedAt: new Date(), revokedByAdmin: true });
+      const refused = await patch(byAdmin.body.id, { reactivate: true }).expect(403);
+      expect(refused.body.code).toBe('REVOKED_BY_ADMIN');
+
+      const inBin = await post(accessToken, family).send({ targetType: 'document', targetId: doc.id });
+      await patch(inBin.body.id, { revoke: true }).expect(200);
+      await Document.updateOne({ _id: doc.id }, { deletedAt: new Date() });
+      const gone = await patch(inBin.body.id, { reactivate: true }).expect(409);
+      expect(gone.body.code).toBe('TARGET_UNAVAILABLE');
+    });
+
+    it('names the shared file in the list, so links to one document can be told apart', async () => {
+      const { family, membership, accessToken } = await createFamilyWithMember();
+      const folder = await createFolder(family, membership);
+      const doc = await createDocument(family, membership, folder, {
+        files: [fakeFile(membership, 'front.jpg'), { ...fakeFile(membership, 'back.jpg'), label: 'Back side' }],
+      });
+      const [front, back] = doc.files;
+      await post(accessToken, family).send({ targetType: 'document', targetId: doc.id, fileIds: [String(front._id)] });
+      await post(accessToken, family).send({ targetType: 'document', targetId: doc.id, fileIds: [String(back._id)] });
+      await post(accessToken, family).send({ targetType: 'document', targetId: doc.id });
+
+      const list = await request(app)
+        .get('/api/shares')
+        .set('Authorization', `Bearer ${accessToken}`).set('X-Family-Id', family.id);
+      expect(list.body.items.map((s) => s.fileNames).sort((a, b) => a.length - b.length || String(a).localeCompare(String(b))))
+        .toEqual([[], ['Back side'], ['front.jpg']]);
+    });
+
+    it('shows the same link again, only to its family, and says when an older link cannot', async () => {
+      const a = await createFamilyWithMember();
+      const folder = await createFolder(a.family, a.membership);
+      const doc = await createDocument(a.family, a.membership, folder);
+      const link = (id, who) => request(app)
+        .get(`/api/shares/${id}/link`)
+        .set('Authorization', `Bearer ${who.accessToken}`).set('X-Family-Id', who.family.id);
+
+      const created = await post(a.accessToken, a.family).send({ targetType: 'document', targetId: doc.id });
+      expect(created.body.canShowLink).toBe(true);
+      expect(created.body).not.toHaveProperty('tokenSealed');
+      const again = await link(created.body.id, a).expect(200);
+      expect(again.body.url).toBe(created.body.url);
+
+      const stored = await Share.findById(created.body.id).lean();
+      expect(stored.tokenSealed).not.toContain(created.body.url.split('/s/')[1]);
+
+      const b = await createFamilyWithMember();
+      await link(created.body.id, b).expect(404);
+
+      await Share.updateOne({ _id: created.body.id }, { $unset: { tokenSealed: 1 } });
+      const older = await link(created.body.id, a).expect(404);
+      expect(older.body.code).toBe('LINK_NOT_SAVED');
+      const list = await request(app)
+        .get('/api/shares')
+        .set('Authorization', `Bearer ${a.accessToken}`).set('X-Family-Id', a.family.id);
+      expect(list.body.items[0].canShowLink).toBe(false);
+      expect(list.body.items[0]).not.toHaveProperty('tokenSealed');
+    });
+
     it('extends a link by restarting the clock with a new duration', async () => {
       const { family, membership, accessToken } = await createFamilyWithMember();
       const folder = await createFolder(family, membership);

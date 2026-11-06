@@ -13,8 +13,8 @@ import { SHARE_DURATIONS, durationLabel, durationTip, familyShareDuration } from
 
 /**
  * Settings > Family tab > family details section — admin only. `PATCH /family` { name, defaultShareDuration }.
- * The default duration is what the Share dialog preselects; anyone sharing can still pick
- * another option for a single link.
+ * The default duration is what the Share dialog uses (saved as soon as it is chosen); anyone
+ * sharing can still pick another option for a single link.
  */
 export default function SettingsFamily({ family }) {
   const { t } = useTranslation(['settings', 'shares', 'common']);
@@ -23,11 +23,24 @@ export default function SettingsFamily({ family }) {
   const [duration, setDuration] = useState(familyShareDuration(null));
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (!family) return;
-    setName(family.name || '');
-    setDuration(familyShareDuration(family));
-  }, [family]);
+  // Separate, so saving the link time never wipes a name being typed.
+  const savedName = family?.name || '';
+  const savedDuration = familyShareDuration(family);
+  useEffect(() => setName(savedName), [savedName]);
+  useEffect(() => setDuration(savedDuration), [savedDuration]);
+
+  // Tapping a time saves it straight away: nothing else on this card suggests it needs Save.
+  const handleDurationChange = async (next) => {
+    setDuration(next);
+    try {
+      await familyApi.update({ defaultShareDuration: next });
+      toast.success(t('family.durationSaved', 'New links now work for {{time}}', { time: durationLabel(next, t) }));
+      queryClient.invalidateQueries({ queryKey: ['family'] });
+    } catch (err) {
+      setDuration(savedDuration);
+      toast.error(err?.response?.data?.message || t('family.saveFailed', 'Could not save family settings.'));
+    }
+  };
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -36,7 +49,7 @@ export default function SettingsFamily({ family }) {
     }
     setSaving(true);
     try {
-      await familyApi.update({ name: name.trim(), defaultShareDuration: duration });
+      await familyApi.update({ name: name.trim() });
       toast.success(t('family.saved', 'Family settings saved'));
       queryClient.invalidateQueries({ queryKey: ['family'] });
     } catch (err) {
@@ -50,7 +63,15 @@ export default function SettingsFamily({ family }) {
 
   return (
     <SectionCard id="settings-family" title={t('tabs.family', 'Family')} bodyClassName={FIELD_GAP}>
-      <Input label={t('family.familyNameLabel', 'Family name')} value={name} maxLength={150} onChange={(e) => setName(e.target.value)} />
+      {/* Save belongs to the name: the link time below saves as soon as it is tapped. */}
+      <div className="flex items-end gap-2">
+        <div className="min-w-0 flex-1">
+          <Input label={t('family.familyNameLabel', 'Family name')} value={name} maxLength={150} onChange={(e) => setName(e.target.value)} />
+        </div>
+        <Button onClick={handleSave} loading={saving} disabled={name.trim() === savedName}>
+          {t('common:actions.save', 'Save')}
+        </Button>
+      </div>
       <ChoiceGroup
         name="default-share-duration"
         label={t('family.shareDurationLabel', 'Default share link duration')}
@@ -58,14 +79,9 @@ export default function SettingsFamily({ family }) {
         info={t('tip.shareDurationInfo', 'How long a new link keeps working')}
         columns={3}
         value={duration}
-        onChange={setDuration}
+        onChange={handleDurationChange}
         options={SHARE_DURATIONS.map((value) => ({ value, label: durationLabel(value, t), tip: durationTip(value, t) }))}
       />
-      <div className="kb-sticky flex justify-end">
-        <Button onClick={handleSave} loading={saving}>
-          {t('common:actions.save', 'Save')}
-        </Button>
-      </div>
     </SectionCard>
   );
 }

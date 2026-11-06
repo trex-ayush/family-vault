@@ -20,6 +20,7 @@ import { siblingColors } from '@/features/folders/folderColors.js';
 import FolderViewToggle, { readFolderView, saveFolderView } from '@/features/folders/FolderViewToggle.jsx';
 import { useFolderActions } from '@/features/folders/useFolderActions.jsx';
 import FolderActionsMenu from '@/features/folders/FolderActionsMenu.jsx';
+import ShareButton from '@/features/share/ShareButton.jsx';
 import { BrowseListCard, DocumentListRow, FolderListRow, ItemListRow } from '@/features/folders/BrowseRows.jsx';
 import { buildBrowseEntries, folderName, folderPathLabel, ROOT_ID } from '@/features/folders/folderTreeUtils.js';
 import { foldersKeys, useBrowse } from '@/features/folders/foldersHooks.js';
@@ -141,7 +142,14 @@ function BrowseView({ folderId }) {
             </nav>
           }
           title={currentName || (isLoading ? '' : t('title', 'Folders'))}
-          titleAddon={currentFolder && <FolderActionsMenu folder={currentFolder} align="left" {...wrapHandlers(rowHandlers, currentFolder)} />}
+          titleAddon={
+            currentFolder && (
+              <>
+                <ShareButton variant="icon" targetType="folder" targetId={currentFolder.id} targetLabel={currentName} className="sm:hidden" />
+                <FolderActionsMenu folder={currentFolder} align="left" withShare={false} {...wrapHandlers(rowHandlers, currentFolder)} />
+              </>
+            )
+          }
           actions={
             !notFound && (
               // One stable cluster: search · grid/list · New folder · + Add, the search growing to
@@ -161,6 +169,11 @@ function BrowseView({ folderId }) {
                   </div>
                 )}
                 <div className={`flex items-center gap-2 max-sm:order-first ${searchOpen ? 'max-sm:hidden' : ''}`}>
+                  {currentFolder && (
+                    <span className="hidden sm:block">
+                      <ShareButton targetType="folder" targetId={currentFolder.id} targetLabel={currentName} />
+                    </span>
+                  )}
                   {newFolderCompact}
                   <AddButton folderId={folderId} />
                 </div>

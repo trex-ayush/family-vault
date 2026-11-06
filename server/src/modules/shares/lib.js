@@ -45,7 +45,7 @@ export function targetLabelFrom(targetType, target) {
 /**
  * Batch-resolves target labels for a list of shares (one query per target type), including
  * targets that are in the Bin, so the Shares page can still name them.
- * Returns `{ labelFor: (share) => label|null, inBin: (share) => boolean }`.
+ * Returns `{ labelFor: (share) => label|null, inBin: (share) => boolean, fileNamesFor: (share) => string[] }`.
  */
 export async function resolveTargetLabels(familyId, shares) {
   const documentIds = [];
@@ -57,24 +57,31 @@ export async function resolveTargetLabels(familyId, shares) {
 
   const [docs, folders] = await Promise.all([
     documentIds.length
-      ? Document.find(scopeToFamily(familyId, { _id: { $in: documentIds }, ...ANY_DELETED_STATE })).select('title deletedAt').lean()
+      ? Document.find(scopeToFamily(familyId, { _id: { $in: documentIds }, ...ANY_DELETED_STATE })).select('title deletedAt files._id files.label files.originalName').lean()
       : [],
     folderIds.length
       ? Folder.find(scopeToFamily(familyId, { _id: { $in: folderIds }, ...ANY_DELETED_STATE })).select('name deletedAt').lean()
       : [],
   ]);
-  const docMap = new Map(docs.map((d) => [String(d._id), { label: d.title, deleted: Boolean(d.deletedAt) }]));
+  const docMap = new Map(docs.map((d) => [String(d._id), { label: d.title, deleted: Boolean(d.deletedAt), files: d.files || [] }]));
   const folderMap = new Map(folders.map((f) => [String(f._id), { label: f.name, deleted: Boolean(f.deletedAt) }]));
   const find = (share) => (share.targetType === 'document' ? docMap : folderMap).get(String(share.targetId));
 
   return {
     labelFor: (share) => find(share)?.label ?? null,
     inBin: (share) => Boolean(find(share)?.deleted),
+    fileNamesFor: (share) => {
+      const files = find(share)?.files || [];
+      return (share.fileIds || [])
+        .map((id) => files.find((f) => String(f._id) === String(id)))
+        .filter(Boolean)
+        .map((f) => f.label || f.originalName);
+    },
   };
 }
 
 /** Share -> API shape. `url` is only ever passed on create (the raw token is never stored). */
-export function serializeShare(share, { url, targetLabel = null, targetInBin = false } = {}) {
+export function serializeShare(share, { url, targetLabel = null, targetInBin = false, fileNames = [] } = {}) {
   return {
     id: String(share._id),
     targetType: share.targetType,
@@ -82,10 +89,13 @@ export function serializeShare(share, { url, targetLabel = null, targetInBin = f
     targetLabel,
     targetInBin,
     fileIds: (share.fileIds || []).map(String),
+    fileNames,
     duration: share.duration,
     expiresAt: share.expiresAt,
     status: shareStatus(share),
     revokedAt: share.revokedAt,
+    revokedByAdmin: Boolean(share.revokedByAdmin),
+    canShowLink: Boolean(share.tokenSealed),
     openCount: share.openCount,
     downloadCount: share.downloadCount,
     lastOpenedAt: share.lastOpenedAt,

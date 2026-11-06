@@ -27,7 +27,7 @@ function render() {
   );
 }
 
-/** Opens the share dialog. `props`: { targetType, targetId, fileIds?, targetLabel? }. */
+/** Opens the share dialog. `props`: { targetType, targetId, fileIds?, targetLabel?, existing? }. */
 export function openShareDialog(props, queryClient) {
   openCount += 1;
   current = { props, queryClient, isOpen: true, key: openCount };

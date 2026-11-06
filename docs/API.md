@@ -480,8 +480,14 @@ Body: `{ "targetType": "document"|"folder", "targetId", "fileIds"?: ["..."], "du
 Errors: `404 NOT_FOUND` (target, or none of `fileIds` belong to the document).
 
 ### PATCH /shares/:id
-Body: `{ "revoke"?: true, "extendTo"?: "12h"|"24h"|"7d" }` — revoke turns the link off at once;
-`extendTo` restarts the clock from now. Returns the Share.
+Body: `{ "revoke"?: true, "reactivate"?: true, "extendTo"?: "12h"|"24h"|"7d" }` — revoke turns the
+link off at once; reactivate makes an off or expired link work again (same URL) for its own
+`duration`, from now; `extendTo` restarts the clock from now. Returns the Share. Reactivate errors:
+`403 REVOKED_BY_ADMIN`, `409 TARGET_UNAVAILABLE` (in the Bin or deleted).
+
+### GET /shares/:id/link
+`{ "url" }` — the same link again. Shares list rows say `canShowLink`; links made before this existed
+answer `404 LINK_NOT_SAVED`. The token is kept encrypted, and is never in any other response.
 
 ### DELETE /shares/:id
 Removes the row (tidying the list). Creator or admin only.

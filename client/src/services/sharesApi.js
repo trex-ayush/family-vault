@@ -6,8 +6,8 @@ export const sharesApi = {
   list: (params) => apiClient.get('/shares', { params }).then((res) => res.data),
 
   /**
-   * POST /shares -> 201 { ...Share, url } — `url` (the raw share link) is ONLY ever returned
-   * here, right after creation; it can't be recovered from `list` later.
+   * POST /shares -> 201 { ...Share, url } — `url` (the raw share link) is returned here and by
+   * `link` below, never in `list`.
    * Body: { targetType: 'document'|'folder', targetId, fileIds?, duration?: '12h'|'24h'|'7d' }
    * (no duration = the family's default).
    */
@@ -15,6 +15,15 @@ export const sharesApi = {
 
   /** PATCH /shares/:id — { revoke: true } turns the link off immediately. */
   revoke: (id) => apiClient.patch(`/shares/${id}`, { revoke: true }).then((res) => res.data),
+
+  /** PATCH /shares/:id — { reactivate: true } makes an off or expired link work again. */
+  reactivate: (id) => apiClient.patch(`/shares/${id}`, { reactivate: true }).then((res) => res.data),
+
+  /** PATCH /shares/:id — { extendTo } : the same link, now lasting this long from now. */
+  extend: (id, duration) => apiClient.patch(`/shares/${id}`, { extendTo: duration }).then((res) => res.data),
+
+  /** GET /shares/:id/link -> { url } — the same link again (when the row says `canShowLink`). */
+  link: (id) => apiClient.get(`/shares/${id}/link`).then((res) => res.data),
 
   /** DELETE /shares/:id — removes the record (owner/admin only). */
   remove: (id) => apiClient.delete(`/shares/${id}`).then((res) => res.data),

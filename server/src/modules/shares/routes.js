@@ -12,9 +12,11 @@ import { Family, SHARE_DURATIONS } from '../../models/Family.js';
 import { Activity } from '../../models/Activity.js';
 import { logActivity } from '../../services/activityLogger.js';
 import { generateOpaqueToken, sha256Hex } from '../../utils/crypto.js';
+import { openText, sealText } from '../documents/secretText.js';
 import {
   computeExpiresAt,
   loadTarget,
+  shareStatus,
   targetLabelFrom,
   resolveTargetLabels,
   serializeShare,
@@ -42,12 +44,15 @@ const listQuerySchema = z.object({
 const patchShareSchema = z
   .object({
     revoke: z.literal(true).optional(),
+    // Turn an off or expired link back on: the same link works again, for its own length of time.
+    reactivate: z.literal(true).optional(),
     // Restart the clock: the link now expires this long from now.
     extendTo: durationEnum.optional(),
   })
-  .refine((b) => b.revoke !== undefined || b.extendTo !== undefined, {
+  .refine((b) => b.revoke !== undefined || b.reactivate !== undefined || b.extendTo !== undefined, {
     message: 'Nothing to update',
-  });
+  })
+  .refine((b) => !(b.revoke && b.reactivate), { message: 'Choose either revoke or reactivate' });
 
 // Every /shares route manages sharing for the family, not just views it — "Write" per docs/API.md.
 router.use(requireAuth, requireFamily, requireWrite);
@@ -70,8 +75,8 @@ router.get('/', validate({ query: listQuerySchema }), async (req, res, next) => 
     }
 
     const shares = await Share.find(filter).sort({ createdAt: -1 }).lean();
-    const { labelFor, inBin } = await resolveTargetLabels(req.auth.familyId, shares);
-    res.json({ items: shares.map((s) => serializeShare(s, { targetLabel: labelFor(s), targetInBin: inBin(s) })) });
+    const { labelFor, inBin, fileNamesFor } = await resolveTargetLabels(req.auth.familyId, shares);
+    res.json({ items: shares.map((s) => serializeShare(s, { targetLabel: labelFor(s), targetInBin: inBin(s), fileNames: fileNamesFor(s) })) });
   } catch (err) {
     next(err);
   }
@@ -102,6 +107,7 @@ router.post('/', validate({ body: createShareSchema }), async (req, res, next) =
     const share = await Share.create({
       familyId: req.auth.familyId,
       tokenHash: sha256Hex(token),
+      tokenSealed: sealText(token),
       targetType,
       targetId,
       fileIds: validFileIds,
@@ -132,7 +138,22 @@ router.patch('/:id', validate({ body: patchShareSchema }), async (req, res, next
     const share = await Share.findOne(scopeToFamily(req.auth.familyId, { _id: req.params.id }));
     if (!share) throw new ApiError(404, 'NOT_FOUND', 'Share not found');
 
-    const { revoke, extendTo } = req.body;
+    const { revoke, reactivate, extendTo } = req.body;
+    const target = await loadTarget(req.auth.familyId, share.targetType, share.targetId);
+
+    if (reactivate) {
+      if (share.revokedByAdmin) {
+        throw new ApiError(403, 'REVOKED_BY_ADMIN', 'The site admin turned this link off, so it cannot be turned back on');
+      }
+      // In the Bin or deleted for good: there is nothing for the link to show.
+      if (!target) throw new ApiError(409, 'TARGET_UNAVAILABLE', 'What this link shares is in the Bin or no longer exists');
+      // Already working: nothing to do (a double tap must not restart the clock or log twice).
+      if (shareStatus(share) === 'active') {
+        return res.json(serializeShare(share, { targetLabel: targetLabelFrom(share.targetType, target) }));
+      }
+      share.revokedAt = null;
+      share.expiresAt = computeExpiresAt(share.duration);
+    }
 
     if (revoke && !share.revokedAt) share.revokedAt = new Date();
 
@@ -144,14 +165,13 @@ router.patch('/:id', validate({ body: patchShareSchema }), async (req, res, next
     await share.save();
 
     await logActivity(req, {
-      action: revoke ? 'share.revoke' : 'share.update',
+      action: revoke ? 'share.revoke' : reactivate ? 'share.reactivate' : 'share.update',
       targetType: share.targetType,
       targetId: share.targetId,
       shareId: share._id,
-      meta: { revoke: !!revoke, extendTo: extendTo || null },
+      meta: { revoke: !!revoke, extendTo: extendTo || null, ...(reactivate ? { duration: share.duration } : {}) },
     });
 
-    const target = await loadTarget(req.auth.familyId, share.targetType, share.targetId);
     res.json(serializeShare(share, { targetLabel: targetLabelFrom(share.targetType, target) }));
   } catch (err) {
     next(err);
@@ -178,6 +198,19 @@ router.delete('/:id', async (req, res, next) => {
     });
 
     res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// The same link again, to send it to someone else from the Shares page.
+router.get('/:id/link', async (req, res, next) => {
+  try {
+    const share = await Share.findOne(scopeToFamily(req.auth.familyId, { _id: req.params.id })).lean();
+    if (!share) throw new ApiError(404, 'NOT_FOUND', 'Share not found');
+    const token = openText(share.tokenSealed);
+    if (!token) throw new ApiError(404, 'LINK_NOT_SAVED', 'This older link cannot be shown again. Please make a new one.');
+    res.json({ url: `${env.CLIENT_URL}/s/${token}` });
   } catch (err) {
     next(err);
   }

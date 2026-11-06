@@ -9,7 +9,7 @@ import { useCanWrite } from '@/hooks/useCanWrite.js';
 
 /**
  * ShareButton — the single way to share a folder, a document or one file. Opens the share
- * dialog (what is being shared, "Link valid for", Create link → WhatsApp / Copy / Share).
+ * dialog (what is being shared, how long the link lasts, Create link → WhatsApp / Copy / Share).
  *
  * Props:
  *  - targetType: 'document' | 'folder'
@@ -22,8 +22,8 @@ import { useCanWrite } from '@/hooks/useCanWrite.js';
  *
  * @example
  * <ShareButton targetType="document" targetId={doc.id} targetLabel={doc.title} />
- * <ShareButton targetType="document" targetId={doc.id} fileIds={[file.id]} variant="icon" />
- * <Dropdown trigger={...}><ShareButton variant="menuitem" targetType="folder" targetId={f.id} /></Dropdown>
+ * <ShareButton targetType="document" targetId={doc.id} fileIds={[file.id]} targetLabel={name} variant="icon" />
+ * <Dropdown trigger={...}><ShareButton variant="menuitem" targetType="folder" targetId={f.id} targetLabel={f.name} /></Dropdown>
  */
 export default function ShareButton({
   targetType,
